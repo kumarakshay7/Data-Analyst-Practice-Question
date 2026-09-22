@@ -1,30 +1,49 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SQL Data Analyst Interview Practice | Full Question Bank</title>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SQL Data Analyst Interview Practice | 155 Questions</title>
 <style>
 :root{--bg:#f5f7fb;--panel:#fff;--ink:#172033;--muted:#697386;--line:#e2e7ef;--dark:#101827;--dark2:#1b2638;--blue:#2563eb}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,sans-serif}.app{display:grid;grid-template-columns:330px 1fr;min-height:100vh}
-.sidebar{background:var(--dark);color:#fff;padding:20px 15px;position:sticky;top:0;height:100vh;overflow:auto}.brand{padding:4px 10px 17px;border-bottom:1px solid #2b374a}.brand h1{font-size:19px;line-height:1.15;margin:0 0 8px}.brand p{font-size:12px;color:#aeb8c8;margin:0}
-.controls{padding:14px 10px;border-bottom:1px solid #2b374a}input,select{width:100%;border:1px solid #344157;border-radius:8px;background:#182235;color:#fff;padding:9px;font-size:12px;margin-bottom:8px}.stats{font-size:11px;color:#aeb8c8;margin:5px 0 0}.qnav{padding:10px 4px}
-.qbtn{width:100%;border:0;background:transparent;color:#cbd4e2;text-align:left;border-radius:8px;padding:9px 10px;margin:2px 0;cursor:pointer;font-size:12px;line-height:1.35}.qbtn:hover,.qbtn.active{background:var(--dark2);color:#fff}
-.main{padding:30px;max-width:1250px;width:100%;margin:auto}.header{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:18px}.header h2{margin:0 0 7px;font-size:26px}.header p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}
-.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{display:inline-block;border:0;border-radius:8px;padding:10px 13px;font-weight:700;text-decoration:none;cursor:pointer;font-size:12px}.primary{background:var(--blue);color:#fff}.secondary{background:#e9eef6;color:var(--ink)}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;margin:14px 0;box-shadow:0 8px 24px #1018270f}.badge{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:11px;background:#fff;margin-right:6px}.question{font-size:20px;font-weight:700;line-height:1.4;margin:12px 0}.meta{color:var(--muted);font-size:13px}.topic{background:#f8fafc;border:1px solid var(--line);padding:14px;border-radius:9px;line-height:1.6;font-size:14px}.note{background:#f0f7ff;border:1px solid #bfdbfe;border-radius:9px;padding:13px;line-height:1.6;font-size:13px}.empty{padding:30px;text-align:center;color:var(--muted)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,sans-serif}.app{display:grid;grid-template-columns:330px 1fr;min-height:100vh}.sidebar{background:var(--dark);color:#fff;padding:20px 15px;position:sticky;top:0;height:100vh;overflow:auto}.brand{padding:4px 10px 17px;border-bottom:1px solid #2b374a}.brand h1{font-size:19px;line-height:1.15;margin:0 0 8px}.brand p{font-size:12px;color:#aeb8c8;margin:0}.controls{padding:14px 10px;border-bottom:1px solid #2b374a}input,select{width:100%;border:1px solid #344157;border-radius:8px;background:#182235;color:#fff;padding:9px;font-size:12px;margin-bottom:8px}.stats{font-size:11px;color:#aeb8c8;margin:5px 0 0}.qnav{padding:10px 4px}.qbtn{width:100%;border:0;background:transparent;color:#cbd4e2;text-align:left;border-radius:8px;padding:9px 10px;margin:2px 0;cursor:pointer;font-size:12px;line-height:1.35}.qbtn:hover,.qbtn.active{background:var(--dark2);color:#fff}.main{padding:30px;max-width:1250px;width:100%;margin:auto}.header{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:18px}.header h2{margin:0 0 7px;font-size:26px}.header p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{display:inline-block;border:0;border-radius:8px;padding:10px 13px;font-weight:700;text-decoration:none;cursor:pointer;font-size:12px}.primary{background:var(--blue);color:#fff}.secondary{background:#e9eef6;color:var(--ink)}.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;margin:14px 0;box-shadow:0 8px 24px #1018270f}.badge{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:11px;background:#fff;margin-right:6px}.question{font-size:20px;font-weight:700;line-height:1.4;margin:12px 0}.meta{color:var(--muted);font-size:13px}.topic{background:#f8fafc;border:1px solid var(--line);padding:14px;border-radius:9px;line-height:1.6;font-size:14px}.note{background:#f0f7ff;border:1px solid #bfdbfe;border-radius:9px;padding:13px;line-height:1.6;font-size:13px}.empty{padding:30px;text-align:center;color:var(--muted)}.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:14px;border-radius:9px}
 @media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{position:relative;height:auto}.main{padding:18px}.header{flex-direction:column}}
-</style></head>
-<body><div class="app">
-<aside class="sidebar"><div class="brand"><h1>SQL DATA ANALYST<br>INTERVIEW PRACTICE</h1><p>Full SQL interview bank • 155 questions</p></div>
-<div class="controls"><input id="search" placeholder="Search questions..." aria-label="Search questions"><select id="category"><option value="All">All topics</option></select><select id="difficulty"><option value="All">All difficulty</option><option>Easy</option><option>Medium</option><option>Hard</option></select><div class="stats" id="stats"></div></div><div class="qnav" id="nav"></div></aside>
-<main class="main"><div class="header"><div><h2 id="title">SQL Data Analyst Interview Practice</h2><p>All questions from the SQL interview bank are visible. Search or filter by topic and difficulty.</p></div><div class="actions"><a class="btn primary" href="practice.html">▶ Open Runnable Practice</a><a class="btn secondary" href="QUESTION_BANK.md">📚 Question Bank</a></div></div><div id="page"></div></main>
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+<div class="brand"><h1>SQL DATA ANALYST<br>INTERVIEW PRACTICE</h1><p>Full SQL interview bank • 155 questions</p></div>
+<div class="controls"><input id="search" placeholder="Search questions..." aria-label="Search questions"><select id="category"><option value="All">All topics</option></select><div class="stats" id="stats">Loading 155 questions...</div></div>
+<div class="qnav" id="nav"></div>
+</aside>
+<main class="main">
+<div class="header"><div><h2 id="title">SQL Data Analyst Interview Practice</h2><p>All 155 SQL interview questions are loaded from the repository question bank. Search or filter by topic.</p></div><div class="actions"><a class="btn primary" href="practice.html">▶ Open Runnable Practice</a><a class="btn secondary" href="QUESTION_BANK.md">📚 Question Bank</a></div></div>
+<div id="page"><div class="card">Loading the full SQL question bank...</div></div>
+</main>
 </div>
 <script>
-const BANK=[__DATA__];
-let filtered=[...BANK];
-const coreIds=new Set(Array.from({length:18},(_,i)=>`Q${String(i+1).padStart(3,'0')}`));
+let BANK=[],filtered=[];
 const esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
-function init(){const cats=[...new Set(BANK.map(q=>q.category))],sel=document.getElementById('category');cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o)});['search','category','difficulty'].forEach(id=>document.getElementById(id).addEventListener('input',apply));render();}
-function apply(){const s=document.getElementById('search').value.toLowerCase().trim(),c=document.getElementById('category').value,d=document.getElementById('difficulty').value;filtered=BANK.filter(q=>(!s||q.title.toLowerCase().includes(s)||q.id.toLowerCase().includes(s))&&(c==='All'||q.category===c)&&(d==='All'||q.difficulty===d));render();}
-function render(){document.getElementById('stats').textContent=`Showing ${filtered.length} of ${BANK.length} questions`;const nav=document.getElementById('nav');nav.innerHTML='';filtered.forEach(q=>{const b=document.createElement('button');b.className='qbtn';b.innerHTML=`${q.id} · ${esc(q.title)}`;b.onclick=()=>show(q.id);nav.appendChild(b)});if(filtered.length)show(filtered[0].id);else document.getElementById('page').innerHTML='<div class="card empty">No questions match your filters.</div>';}
-function show(id){const q=BANK.find(x=>x.id===id);if(!q)return;document.getElementById('title').textContent=q.id+' · '+q.title;document.querySelectorAll('.qbtn').forEach(b=>b.classList.toggle('active',b.textContent.startsWith(q.id+' · ')));const runnable=coreIds.has(q.id);document.getElementById('page').innerHTML=`<div class="card"><span class="badge">${esc(q.category)}</span><span class="badge">${esc(q.difficulty)}</span><div class="question">🧑‍💼 ${esc(q.title)}</div><p class="meta">Question ${q.id.replace('Q','')} of ${BANK.length}</p></div><div class="card"><h3>🎯 What to practice</h3><div class="topic">Read the question carefully, identify the required tables and business condition, explain your approach in 1–2 sentences, then write the SQL. Focus on the concepts named in the topic.</div></div><div class="card"><h3>📝 Practice note</h3><div class="note">${runnable?'This question is included in the runnable core practice set. Open Runnable Practice above to execute SQL and check the expected result.':'This question is now visible in the full 155-question bank. It is currently a study question in this page. The runnable core contains the detailed datasets and SQL checker for the first 18 scenarios.'}</div></div>`;}
-init();
-</script></body></html>
+async function loadBank(){
+ try{
+  const text=await fetch('QUESTION_BANK.md').then(r=>{if(!r.ok)throw new Error('Could not load QUESTION_BANK.md');return r.text()});
+  const lines=text.split(/\r?\n/);let section='';
+  for(const line of lines){
+   const h=line.match(/^##\s+\d+\.\s+(.+)$/);
+   if(h){section=h[1].trim();continue}
+   const m=line.match(/^\s*(\d+)\.\s+(.+)$/);
+   if(m && Number(m[1])<=155){BANK.push({id:'Q'+String(m[1]).padStart(3,'0'),title:m[2].trim(),category:section,difficulty:difficultyFor(Number(m[1]))});}
+  }
+  if(BANK.length!==155)throw new Error('Expected 155 SQL questions, but loaded '+BANK.length+'.');
+  filtered=[...BANK];init();
+ }catch(e){document.getElementById('page').innerHTML='<div class="card error">❌ '+esc(e.message)+'</div>';document.getElementById('stats').textContent='Question bank failed to load';}
+}
+function difficultyFor(n){if([1,2,3,4,6,8,10,12,15,21,22,23,24,25,29,32,33,38,39,40,47,49,51,52,78,79,81,82,83,88,89,91,93,97,98,99,100,119,120,121,122,123,124,125,126,127,129,153,154,155].includes(n))return 'Easy';if([5,7,9,11,13,14,16,17,18,19,20,26,27,28,30,31,34,35,36,41,42,43,44,45,46,48,50,53,54,55,56,57,58,60,61,62,64,65,66,68,69,70,71,72,73,74,76,77,84,85,87,90,92,94,95,96,101,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,128,130,131,132,133,134,135,136,137,140,141,142,143,144,145,146,147,148,149,150,151,152].includes(n))return 'Medium';return 'Hard';}
+function init(){const cats=[...new Set(BANK.map(q=>q.category))],sel=document.getElementById('category');cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o)});document.getElementById('search').addEventListener('input',apply);sel.addEventListener('change',apply);render();}
+function apply(){const s=document.getElementById('search').value.toLowerCase().trim(),c=document.getElementById('category').value;filtered=BANK.filter(q=>(!s||q.title.toLowerCase().includes(s)||q.id.toLowerCase().includes(s))&&(c==='All'||q.category===c));render();}
+function render(){document.getElementById('stats').textContent='Showing '+filtered.length+' of '+BANK.length+' SQL questions';const nav=document.getElementById('nav');nav.innerHTML='';filtered.forEach(q=>{const b=document.createElement('button');b.className='qbtn';b.innerHTML=esc(q.id+' · '+q.title);b.onclick=()=>show(q.id);nav.appendChild(b)});if(filtered.length)show(filtered[0].id);else document.getElementById('page').innerHTML='<div class="card empty">No questions match your search.</div>';}
+function show(id){const q=BANK.find(x=>x.id===id);if(!q)return;document.getElementById('title').textContent=q.id+' · '+q.title;document.querySelectorAll('.qbtn').forEach(b=>b.classList.toggle('active',b.textContent.startsWith(q.id+' · ')));document.getElementById('page').innerHTML='<div class="card"><span class="badge">'+esc(q.category)+'</span><span class="badge">'+esc(q.difficulty)+'</span><div class="question">🧑‍💼 '+esc(q.title)+'</div><p class="meta">Question '+q.id.replace('Q','')+' of '+BANK.length+'</p></div><div class="card"><h3>🎯 What to practice</h3><div class="topic">Read the question carefully, identify the required tables and business condition, explain your approach in 1–2 sentences, then write the SQL. Focus on the concepts in this question.</div></div><div class="card"><h3>📝 Practice</h3><div class="note">This question is part of the full 155-question SQL interview bank. Use <b>Open Runnable Practice</b> for the interactive SQL exercises and use this page to browse the complete question list.</div></div>'}
+loadBank();
+</script>
+</body></html>
