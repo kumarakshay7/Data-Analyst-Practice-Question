@@ -24,6 +24,71 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Fix SQL runner
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path("practice.html")
+          html = path.read_text(encoding="utf-8")
+
+          replacement = r'''let sqlPromise=null,runToken=0;
+          async function getSQL(){
+            if(!sqlPromise){
+              sqlPromise=initSqlJs({locateFile:file=>'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/'+file});
+            }
+            const SQL=await sqlPromise;
+            if(!SQL || typeof SQL.Database!=='function') throw new Error('SQL engine failed to initialize. Please refresh the page.');
+            return SQL;
+          }
+          async function execute(sql){
+            if(!sql.trim())throw new Error('Please write a SQL query first.');
+            const SQL=await getSQL();
+            const localDb=new SQL.Database();
+            try{
+              localDb.run(Q[current].setup);
+              return localDb.exec(sql);
+            }finally{
+              localDb.close();
+            }
+          }
+          async function runSQL(){
+            const token=++runToken,box=document.getElementById('result');
+            box.innerHTML='<div class="notice">⏳ Running your SQL...</div>';
+            try{
+              const r=await execute(document.getElementById('editor').value);
+              if(token!==runToken)return;
+              if(!r.length){box.innerHTML='<div class="success">✅ Query executed successfully, but it returned no rows.</div>';return}
+              box.innerHTML='<div class="success">✅ Query executed successfully.</div><div class="result">'+table(r[0].values,r[0].columns)+'</div>';
+            }catch(e){if(token===runToken)box.innerHTML='<div class="error">❌ SQL Error<br><br>'+esc(e.message)+'</div>'}
+          }
+          async function checkAnswer(){
+            const token=++runToken,box=document.getElementById('result');
+            box.innerHTML='<div class="notice">⏳ Checking your answer...</div>';
+            try{
+              const r=await execute(document.getElementById('editor').value);
+              if(token!==runToken)return;
+              const actual=normRows(r.length?r[0].values:[]),expected=normRows(Q[current].out);
+              if(JSON.stringify(actual)===JSON.stringify(expected)){
+                if(!completed.includes(Q[current].id)){completed.push(Q[current].id);localStorage.setItem('sqlPracticeCompleted',JSON.stringify(completed))}
+                box.innerHTML='<div class="success">✅ Correct! Your result matches the expected output.</div>';
+                renderNav();document.getElementById('bar').style.width=(completed.length/Q.length*100)+'%';document.getElementById('progress').textContent=completed.length+' / '+Q.length+' completed';
+              }else{
+                box.innerHTML='<div class="error">❌ Wrong answer. Your query ran successfully, but the result does not match the expected output.<br><br><b>Try again or use Hint 1 / Hint 2.</b></div>';
+              }
+            }catch(e){if(token===runToken)box.innerHTML='<div class="error">❌ SQL Error<br><br>'+esc(e.message)+'</div>'}
+          }
+          '''
+
+          pattern = r"async function initDB\(x\).*?function showSolution\(\)\{"
+          updated, count = re.subn(pattern, replacement + "function showSolution(){", html, count=1, flags=re.S)
+          if count != 1:
+              raise SystemExit("Could not find the old SQL runner block in practice.html")
+          path.write_text(updated, encoding="utf-8")
+          print("SQL runner patched for GitHub Pages")
+          PY
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
