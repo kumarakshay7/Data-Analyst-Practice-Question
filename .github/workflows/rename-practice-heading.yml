@@ -1,0 +1,49 @@
+name: Apply Data Analyst Practice heading
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  branding:
+    if: ${{ !contains(github.event.head_commit.message, 'Apply Data Analyst Practice heading') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update visible headings
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          replacements = {
+              'SQL DATA ANALYST<br>INTERVIEW PRACTICE': 'DATA ANALYST<br>PRACTICE QUESTION',
+              'SQL Data Analyst Interview Practice': 'Data Analyst Practice Question',
+              'SQL Data Analyst Interview Practice | 155 Questions': 'Data Analyst Practice Question | SQL 155 Questions',
+          }
+          for name in ['practice.html', 'all_questions.html']:
+              p = Path(name)
+              if not p.exists():
+                  continue
+              text = p.read_text(encoding='utf-8')
+              original = text
+              for old, new in replacements.items():
+                  text = text.replace(old, new)
+              if text != original:
+                  p.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit heading update
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add practice.html all_questions.html
+          if git diff --cached --quiet; then
+            echo 'No heading changes required.'
+            exit 0
+          fi
+          git commit -m 'Apply Data Analyst Practice heading'
+          git push
