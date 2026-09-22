@@ -30,7 +30,13 @@ jobs:
           test -f all_questions.html
           test -f practice.html
           test -f QUESTION_BANK.md
+          test -f theory_details.js
           echo "GitHub Pages files validated."
+
+      - name: Add detailed theory explanations
+        run: |
+          sed -i '/<\/body>/i <script src="theory_details.js"><\/script>' practice.html
+          echo "Detailed theory explanations loaded."
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
