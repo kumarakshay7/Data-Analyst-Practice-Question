@@ -31,8 +31,23 @@ jobs:
           test -f practice.html
           test -f QUESTION_BANK.md
           test -f theory_details.js
+          test -f theory_extra.js
           test -f datasets/practice_seed.sql
           echo "GitHub Pages files validated."
+
+      - name: Attach detailed theory explanations
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('practice.html')
+          html = path.read_text(encoding='utf-8')
+          marker = '<!-- THEORY_DETAILS_ATTACHED -->'
+          if marker not in html:
+              html = html.replace('</body>', marker + '<script src="theory_details.js"></script><script src="theory_extra.js"></script></body>')
+              path.write_text(html, encoding='utf-8')
+          print('Detailed theory scripts attached for GitHub Pages deployment.')
+          PY
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
