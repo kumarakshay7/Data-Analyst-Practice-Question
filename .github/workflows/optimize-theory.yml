@@ -1,0 +1,67 @@
+name: Optimize Theory Page Performance
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  optimize:
+    if: ${{ !contains(github.event.head_commit.message, 'Apply theory performance optimization') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Replace expensive MutationObservers
+        shell: python
+        run: |
+          from pathlib import Path
+
+          p = Path('theory_details.js')
+          s = p.read_text(encoding='utf-8')
+          old = """  const observer=new MutationObserver(()=>applyDetails());
+    observer.observe(document.getElementById('page')||document.body,{childList:true,subtree:true});
+    setTimeout(applyDetails,50);"""
+          new = """  function scheduleApply(){
+      requestAnimationFrame(()=>applyDetails());
+    }
+    document.addEventListener('click',(event)=>{
+      if(event.target.closest('.qbtn,.tab')) setTimeout(scheduleApply,0);
+    });
+    setTimeout(scheduleApply,0);"""
+          if old not in s:
+              raise SystemExit('Expected theory_details observer block was not found')
+          p.write_text(s.replace(old,new), encoding='utf-8')
+
+          p = Path('theory_extra.js')
+          s = p.read_text(encoding='utf-8')
+          old = """  new MutationObserver(apply).observe(document.body,{childList:true,subtree:true});
+    setTimeout(apply,100);"""
+          new = """  function scheduleApply(){
+      requestAnimationFrame(()=>{
+        const answer=document.querySelector('#page .answer');
+        if(!answer || answer.dataset.detailed==='1') return;
+        apply();
+        if(answer.innerHTML && answer.innerHTML.trim()) answer.dataset.detailed='1';
+      });
+    }
+    document.addEventListener('click',(event)=>{
+      if(event.target.closest('.qbtn,.tab')) setTimeout(scheduleApply,0);
+    });
+    setTimeout(scheduleApply,0);"""
+          if old not in s:
+              raise SystemExit('Expected theory_extra observer block was not found')
+          p.write_text(s.replace(old,new), encoding='utf-8')
+
+      - name: Commit optimized files
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add theory_details.js theory_extra.js
+          git diff --cached --quiet && exit 0
+          git commit -m "Apply theory performance optimization"
+          git push
