@@ -1,43 +1,47 @@
 # SQL Data Analyst Interview Practice
 
-Practical SQL interview preparation for Data Analyst roles.
+An interactive, scenario-based SQL practice lab for Data Analyst interviews.
 
-## Focus
-- SQL fundamentals
-- Joins and aggregations
-- Window functions
-- Salary history
-- Consecutive login streaks
-- Customer/product analysis
-- CTEs and subqueries
-- Date and time analysis
-- Business cases
-- SQL optimization
-- Deloitte-style interview scenarios
+## 🚀 Open the Practice App
 
-## Practice method
-1. Read the question and table structure.
-2. Explain your approach before writing SQL.
-3. Write the query yourself.
-4. Run it on the sample data.
-5. Compare with the solution.
-6. Explain why each clause is used.
+**[👉 Start SQL Practice](./index.html)**
 
-## Folders
+If you enable GitHub Pages for this repository, the same app can be opened directly as a website.
 
-| Folder | Focus |
+## What you can do
+
+- Read an interview-style SQL question
+- See the table structure
+- Think through the problem before coding
+- Get Hint 1 and Hint 2
+- Write your own SQL
+- Check your answer
+- Reveal the correct query
+- Read a simple line-by-line explanation
+- Practice a natural spoken interview answer
+- Track completed questions in your browser
+
+## Practice topics
+
+| Topic | Examples |
 |---|---|
-| 01_Basics | SELECT, WHERE, CASE, NULLs, aggregation |
-| 02_Joins | INNER, LEFT, RIGHT, FULL, SELF JOIN |
-| 03_Aggregations | GROUP BY, HAVING, business metrics |
-| 04_Window_Functions | ROW_NUMBER, RANK, DENSE_RANK, LAG, LEAD |
-| 05_Date_Time | Date analysis, streaks, retention |
-| 06_CTE_Subqueries | CTEs, subqueries, EXISTS |
-| 07_Advanced_Scenarios | Complex interview SQL |
-| 08_Business_Cases | Real Data Analyst scenarios |
-| 09_SQL_Optimization | Performance and tuning |
-| 10_Deloitte_Style | Interview-style questions with simple explanations |
-| datasets | Reusable sample tables |
-| progress | Practice tracker |
+| Basics | SELECT, WHERE, CASE, NULL, aggregation |
+| Joins | INNER, LEFT, RIGHT, FULL, SELF JOIN |
+| Aggregation | GROUP BY, HAVING, business metrics |
+| Window Functions | ROW_NUMBER, RANK, DENSE_RANK, LAG, LEAD |
+| Date & Time | Consecutive dates, retention, time comparisons |
+| CTE & Subqueries | CTEs, EXISTS, correlated queries |
+| Advanced Scenarios | Complex interview SQL |
+| Business Cases | Sales, customers, KPIs, root-cause analysis |
+| SQL Optimization | Large datasets, indexes, execution plans |
+| Company Interview Questions | Company-specific interview practice |
 
-Primary examples use PostgreSQL syntax where date arithmetic is involved.
+## Practice order
+
+**Basics → Joins → Aggregation → Window Functions → Date/Time → CTE/Subqueries → Advanced Scenarios → Business Cases → Company Interview Questions**
+
+## Important
+
+The repository is designed to teach the reasoning behind the query, not just provide answers. Try the query yourself before revealing the solution.
+
+Primary SQL examples use PostgreSQL syntax where date arithmetic is required.
