@@ -1,0 +1,35 @@
+name: Fix Python section UI
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch Python practice page
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('python_practice.html')
+          s=p.read_text(encoding='utf-8')
+          old='<div class="tabs mode-tabs" id="modeTabs"></div>'
+          new='<div class="tabs mode-tabs" id="modeTabs"><button id="pythonTheoryTab" class="tab active" type="button">📘 Theory</button><button id="pythonPracticeTab" class="tab" type="button">💻 Practical Python</button></div>'
+          if old in s:
+              s=s.replace(old,new,1)
+          old2='const theoryButton=document.createElement(\'button\');theoryButton.className=\'tab active\';theoryButton.textContent=\'📘 Theory\';theoryButton.onclick=()=>{mode=\'theory\';current=null;document.querySelectorAll(\'.tabs .tab\').forEach(x=>x.classList.remove(\'active\'));theoryButton.classList.add(\'active\');renderNav()};\nconst practiceButton=document.createElement(\'button\');practiceButton.className=\'tab\';practiceButton.textContent=\'💻 Practical Python\';practiceButton.onclick=()=>{mode=\'practice\';current=null;document.querySelectorAll(\'.tabs .tab\').forEach(x=>x.classList.remove(\'active\'));practiceButton.classList.add(\'active\');renderNav()};\nconst tabs=document.getElementById(\'modeTabs\');tabs.innerHTML=\'\';tabs.append(theoryButton,practiceButton);'
+          new2='const theoryButton=document.getElementById(\'pythonTheoryTab\');const practiceButton=document.getElementById(\'pythonPracticeTab\');theoryButton.onclick=()=>{mode=\'theory\';current=null;theoryButton.classList.add(\'active\');practiceButton.classList.remove(\'active\');document.getElementById(\'search\').value=\'\';document.getElementById(\'difficulty\').value=\'All\';renderNav()};practiceButton.onclick=()=>{mode=\'practice\';current=null;practiceButton.classList.add(\'active\');theoryButton.classList.remove(\'active\');document.getElementById(\'search\').value=\'\';document.getElementById(\'difficulty\').value=\'All\';renderNav()};'
+          if old2 in s:
+              s=s.replace(old2,new2,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add python_practice.html
+          git diff --cached --quiet || git commit -m 'Fix Python Theory and Practical tabs [skip ci]'
+          git push
