@@ -1,48 +1,51 @@
-# SQL Data Analyst Interview Practice
+# Data Analyst Practice Question
 
-An interactive, scenario-based SQL practice lab for Data Analyst interviews.
+An interactive interview practice website covering **SQL and Python/Pandas** for Data Analyst roles.
 
 ## 🚀 Start Practice
 
-**[👉 Open the Full Interactive SQL Question Bank](./all_questions.html)**
+**[👉 Open Data Analyst Practice](./index.html)**
 
-The GitHub Pages homepage now opens the complete **155-question** interview bank instead of showing only the original 10-question sidebar.
+Choose between the SQL section and the new Python section. Both are organized into Theory and Practical practice.
 
-## 📚 155-Question SQL Interview Bank
+## 🗄 SQL Practice
 
-**[👉 Open the full SQL question bank](./QUESTION_BANK.md)**
+**[👉 Open Runnable SQL Practice](./practice.html)**
 
-The bank covers SQL basics, joins, aggregation, window functions, date/time, CTEs, subqueries, advanced scenarios, data quality, SQL optimization, business cases, Python/Pandas, and interview communication.
+The SQL lab contains theory explanations and practical SQL exercises with table structures, hints, SQL editor, Run SQL, Check Answer, expected output, explanations, interview answers, and follow-up questions.
 
-## 🧪 Runnable Core Practice
+**[👉 Open the full 155-question SQL bank](./all_questions.html)**
 
-**[👉 Open the runnable SQL practice](./practice.html)**
+## 🐍 Python Practice
 
-The original interactive SQL lab contains detailed datasets, SQL editor, Run SQL, Check Answer, expected-output validation, explanations, interview answers, and follow-up questions for the core practice scenarios.
+**[👉 Open Python Theory & Practical Practice](./python_practice.html)**
+
+The Python section is organized like the SQL section:
+
+- **50 Python/Pandas Theory Questions** with simple, interview-friendly explanations
+- **40 Practical Python Questions**
+- Python code editor
+- Run Python in the browser
+- Check Answer
+- Show Correct Code
+- Difficulty filters
+- Search questions
+- Theory and Practical modes
+
+The practical section covers Python fundamentals, Pandas, filtering, sorting, groupby, missing values, duplicates, merge, datetime, percentage change, running totals, ranking, IQR outliers, pivot tables, data cleaning, and KPI calculations.
 
 ## Practice flow
 
-**Question → Table Structure → Sample Data → What is being asked? → Simple explanation → Hint 1 → Hint 2 → Write SQL → Run SQL → Check Answer → Correct/Wrong → Correct Query → Explanation → Expected Output → Natural Interview Answer → Follow-up Question**
+**Theory:** Question → Detailed Answer → Interview Tip
 
-## Full question coverage
+**Practical:** Question → Think First → Write Code → Run Python → Check Answer → Correct Code
 
-1. SQL Basics
-2. Joins
-3. GROUP BY / WHERE / HAVING
-4. Window Functions
-5. Date & Time / Consecutive Activity
-6. CTE & Subqueries
-7. Advanced Interview Scenarios
-8. Data Quality
-9. SQL Optimization & Data Modeling
-10. Business Case SQL & Data Analysis
-11. Python / Pandas SQL-style questions
-12. Interview Communication Questions
+## Current structure
 
-Use the search box and topic/difficulty filters on the full practice page to find any question quickly.
+1. SQL Theory
+2. SQL Practical
+3. Python Theory
+4. Python Practical
+5. Full SQL Question Bank
 
-## Practice roadmap
-
-**Basics → Joins → Aggregation → Window Functions → Date/Time → CTE/Subqueries → Advanced Scenarios → Data Quality → SQL Optimization → Business Cases → Python/Pandas → Interview Communication**
-
-SQL syntax can differ between PostgreSQL, MySQL, SQL Server, Oracle, and SQLite, especially for date arithmetic.
+The main website heading is now **DATA ANALYST PRACTICE QUESTION**.
