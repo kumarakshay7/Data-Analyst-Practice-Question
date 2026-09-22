@@ -79,12 +79,26 @@
     if(!card) return;
     const meta=card.querySelector('.meta');
     if(!meta) return;
-    meta.innerHTML='<strong>'+esc(sample[0])+':</strong> '+esc(sample[1])+'<br><strong>'+esc(sample[2])+':</strong> '+esc(sample[3])+'<br><span>Use this sample data first. You can also test your solution with other valid values.</span>';
+
+    // Critical: do not rewrite the same card repeatedly.
+    // Rewriting innerHTML triggers MutationObserver again and can make the page hang.
+    if(card.dataset.forceSample === id) return;
+
+    const desired='<strong>'+esc(sample[0])+':</strong> '+esc(sample[1])+'<br><strong>'+esc(sample[2])+':</strong> '+esc(sample[3])+'<br><span>Use this sample data first. You can also test your solution with other valid values.</span>';
+    if(meta.innerHTML === desired){
+      card.dataset.forceSample=id;
+      return;
+    }
+
+    meta.innerHTML=desired;
     card.dataset.forceSample=id;
   }
 
-  new MutationObserver(forceSample).observe(document.body,{childList:true,subtree:true});
+  // Observe page rendering so the sample is restored whenever a question changes.
+  // The guard above makes this observer safe and prevents recursive DOM updates.
+  const observer=new MutationObserver(forceSample);
+  observer.observe(document.getElementById('page') || document.body,{childList:true,subtree:true});
+
   document.addEventListener('DOMContentLoaded',forceSample);
-  setInterval(forceSample,250);
   forceSample();
 })();
