@@ -52,14 +52,14 @@
     'PY-P050': ['Sample revenue', 'A=100, B=300, C=600', 'Expected output', 'A=10%, B=30%, C=60%'],
     'PY-P051': ['Sample revenue', 'North A=100,B=250; South A=300,B=200', 'Expected output', 'North-B=250; South-A=300'],
     'PY-P052': ['Sample sales', 'North Jan=100,Feb=130; South Jan=200,Feb=180', 'Expected output', 'North change=+30%; South change=-10%'],
-    'PY-P053': ['Sample orders', 'customer 1=100+200, customer 2=500, customer 3=50+100', 'Expected output', 'customer 1 and customer 2 are above average customer value'],
+    'PY-P053': ['Sample orders', 'customer 1=100+200, customer 2=500, customer 3=50+100', 'Expected output', 'customer 2 is above the average customer value'],
     'PY-P054': ['Sample daily sales', '[100,110,105,60,100]', 'Expected output', 'the 60-sales day is detected as a sudden drop'],
     'PY-P055': ['Sample DataFrame columns', '[id, sales]; required=[id, sales, date]', 'Expected output', 'missing column [date]'],
     'PY-P056': ['Sample data', 'IT sales=[100,300]; HR sales=[200]', 'Expected output', 'IT range=200; HR range=0'],
     'PY-P057': ['Sample data', 'old_value=[10,20,30]; new_value=[10,25,30]', 'Expected output', 'row where old_value=20 and new_value=25'],
     'PY-P058': ['Sample data', 'id=[1,2,2,3]; name=[A,None,B,C]', 'Expected output', 'rows=4, duplicate_rows=0, null_cells=1'],
     'PY-P059': ['Sample sales.csv', 'sales=[100,200,150,300,250]', 'Expected output', 'total sales=1000. Put these rows in sales.csv before running.'],
-    'PY-P060': ['Sample data', 'customer_id=[1,2,1,3], revenue=[100,200,150,50], visits=[10,20,15,5], orders=[1,1,1,0]', 'Expected output', 'total_revenue=500, unique_customers=3, average_order_value=166.67, conversion_rate=7.5%']
+    'PY-P060': ['Sample data', 'customer_id=[1,2,1,3], revenue=[100,200,150,50], visits=[10,20,15,5], orders=[1,1,1,0]', 'Expected output', 'total_revenue=500, unique_customers=3, average_order_value=166.67, conversion_rate=6%']
   };
 
   function escapeHtml(s) {
@@ -70,24 +70,19 @@
     const title = document.getElementById('title');
     const page = document.getElementById('page');
     if (!title || !page) return;
-
     const match = title.textContent.match(/^(PY-P\d{3})/);
     if (!match) return;
     const id = match[1];
     const sample = SAMPLES[id];
     if (!sample) return;
-
     const card = page.querySelector('.card');
     const question = card && card.querySelector('.question');
     const meta = card && card.querySelector('.meta');
     if (!question || !meta || card.dataset.samplePatched === id) return;
-
     const q = window.PYTHON_PRACTICAL && window.PYTHON_PRACTICAL.list
       ? window.PYTHON_PRACTICAL.list.find(x => x[0] === id)
       : null;
-
     if (q) question.innerHTML = '🐍 ' + escapeHtml(q[1]);
-
     meta.innerHTML = '<strong>' + escapeHtml(sample[0]) + ':</strong> ' + escapeHtml(sample[1]) + '<br><strong>' + escapeHtml(sample[2]) + ':</strong> ' + escapeHtml(sample[3]) + '<br><span>Use this sample data first. You can also test your solution with other valid values.</span>';
     card.dataset.samplePatched = id;
   }
