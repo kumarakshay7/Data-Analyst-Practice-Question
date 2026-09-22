@@ -56,12 +56,25 @@ jobs:
               raise SystemExit('Expected theory_extra observer block was not found')
           p.write_text(s.replace(old,new), encoding='utf-8')
 
+      - name: Add Python theory rendering fix
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('python_practice.html')
+          s = p.read_text(encoding='utf-8')
+          tag = '<script src="python_theory_fix.js"></script>'
+          if tag not in s:
+              if '</body>' not in s:
+                  raise SystemExit('python_practice.html has no closing body tag')
+              s = s.replace('</body>', tag + '</body>')
+              p.write_text(s, encoding='utf-8')
+
       - name: Commit optimized files
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add theory_details.js theory_extra.js
+          git add theory_details.js theory_extra.js python_practice.html
           git diff --cached --quiet && exit 0
           git commit -m "Apply theory performance optimization"
           git push
