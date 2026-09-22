@@ -33,20 +33,34 @@ jobs:
           test -f theory_details.js
           echo "GitHub Pages files validated."
 
-      - name: Repair Practical SQL page JavaScript
+      - name: Repair Practical SQL question loader
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
           p = Path('practice.html')
           s = p.read_text(encoding='utf-8')
-          broken = 't.split(/\\r?\n/)'
-          fixed = r't.split(/\r?\n/)'
-          if broken in s:
-              s = s.replace(broken, fixed)
+          loader = r'''fetch('QUESTION_BANK.md').then(r=>r.text()).then(t=>{
+          BANK=[];
+          for(const l of t.split(/\r?\n/)){
+            const m=l.match(/^\s*(\d+)\.\s+(.+)$/);
+            if(m && +m[1] <= 155){
+              BANK.push({n:+m[1],id:'Q'+String(m[1]).padStart(3,'0'),title:m[2].trim(),difficulty:diff(+m[1])});
+            }
+          }
+          render();
+          }).catch(e=>{
+            document.getElementById('stats').textContent='Unable to load question bank';
+            document.getElementById('page').innerHTML='<div class="card"><div class="result err">❌ Could not load QUESTION_BANK.md. Please refresh the page.</div></div>';
+            console.error(e);
+          });</script>'''
+          pattern = r"fetch\('QUESTION_BANK\.md'\)[\s\S]*?</script>"
+          if re.search(pattern, s):
+              s = re.sub(pattern, loader, s, count=1)
               p.write_text(s, encoding='utf-8')
-              print('Fixed malformed QUESTION_BANK.md line-splitting regex.')
+              print('Replaced the malformed question-bank loader with valid JavaScript.')
           else:
-              print('Regex already fixed or pattern not present.')
+              raise SystemExit('Could not find QUESTION_BANK.md loader in practice.html')
           PY
 
       - name: Add detailed theory explanations
