@@ -9,41 +9,68 @@ permissions:
 
 jobs:
   branding:
-    if: ${{ !contains(github.event.head_commit.message, 'Apply Data Analyst Practice heading') }}
+    if: ${{ !contains(github.event.head_commit.message, 'Apply Data Analyst Practice heading') && !contains(github.event.head_commit.message, 'Add SQL and Python top navigation') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Update visible headings
+      - name: Update visible headings and language navigation
         run: |
           python - <<'PY'
           from pathlib import Path
+
           replacements = {
               'SQL DATA ANALYST<br>INTERVIEW PRACTICE': 'DATA ANALYST<br>PRACTICE QUESTION',
               'SQL Data Analyst Interview Practice': 'Data Analyst Practice Question',
               'SQL Data Analyst Interview Practice | 155 Questions': 'Data Analyst Practice Question | SQL 155 Questions',
           }
-          for name in ['practice.html', 'all_questions.html']:
-              p = Path(name)
-              if not p.exists():
-                  continue
-              text = p.read_text(encoding='utf-8')
+
+          practice = Path('practice.html')
+          if practice.exists():
+              text = practice.read_text(encoding='utf-8')
+              original = text
+              for old, new in replacements.items():
+                  text = text.replace(old, new)
+
+              old_tabs = '<div class="tabs"><button id="theoryTab" class="tab">📘 Theory</button><button id="practiceTab" class="tab active">💻 Practical SQL</button></div>'
+              new_tabs = '<div class="tabs language-tabs"><a class="tab active" href="practice.html">🗄 SQL</a><a class="tab" href="python_practice.html">🐍 Python</a></div><div class="tabs mode-tabs"><button id="theoryTab" class="tab">📘 Theory</button><button id="practiceTab" class="tab active">💻 Practical SQL</button></div>'
+              text = text.replace(old_tabs, new_tabs)
+
+              if text != original:
+                  practice.write_text(text, encoding='utf-8')
+
+          python_page = Path('python_practice.html')
+          if python_page.exists():
+              text = python_page.read_text(encoding='utf-8')
+              original = text
+
+              old_language_tabs = '<div class="tabs"><a class="tab" href="practice.html">🗄 SQL</a><a class="tab active" href="python_practice.html">🐍 Python</a></div>'
+              new_language_tabs = '<div class="tabs language-tabs"><a class="tab" href="practice.html">🗄 SQL</a><a class="tab active" href="python_practice.html">🐍 Python</a></div><div class="tabs mode-tabs" id="modeTabs"></div>'
+              text = text.replace(old_language_tabs, new_language_tabs)
+              text = text.replace("const tabs=document.querySelector('.tabs');tabs.innerHTML='';tabs.append(theoryButton,practiceButton);", "const tabs=document.getElementById('modeTabs');tabs.innerHTML='';tabs.append(theoryButton,practiceButton);")
+
+              if text != original:
+                  python_page.write_text(text, encoding='utf-8')
+
+          all_questions = Path('all_questions.html')
+          if all_questions.exists():
+              text = all_questions.read_text(encoding='utf-8')
               original = text
               for old, new in replacements.items():
                   text = text.replace(old, new)
               if text != original:
-                  p.write_text(text, encoding='utf-8')
+                  all_questions.write_text(text, encoding='utf-8')
           PY
 
-      - name: Commit heading update
+      - name: Commit navigation update
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add practice.html all_questions.html
+          git add practice.html python_practice.html all_questions.html
           if git diff --cached --quiet; then
-            echo 'No heading changes required.'
+            echo 'No navigation changes required.'
             exit 0
           fi
-          git commit -m 'Apply Data Analyst Practice heading'
+          git commit -m 'Add SQL and Python top navigation'
           git push
