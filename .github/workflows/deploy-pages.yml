@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  workflow_run:
+    workflows: [Apply Data Analyst Practice heading]
+    types: [completed]
 
 permissions:
   contents: read
@@ -16,6 +19,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -29,6 +33,7 @@ jobs:
           test -f index.html
           test -f all_questions.html
           test -f practice.html
+          test -f python_practice.html
           test -f QUESTION_BANK.md
           test -f theory_details.js
           test -f theory_extra.js
