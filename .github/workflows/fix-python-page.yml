@@ -19,28 +19,6 @@ jobs:
           python-version: '3.x'
       - name: Patch Python page
         run: python tools/fix_python_page.py
-      - name: Repair JavaScript newline helper
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
-          p=Path('python_practice.html')
-          s=p.read_text(encoding='utf-8')
-          helper="""function sampleInput(code){
-            const lines=code.split(String.fromCharCode(10)).filter(x=>x.trim()&&!x.trim().startsWith('#'));
-            const defs=[];
-            for(const line of lines){
-              const t=line.trim();
-              if(!/^[A-Za-z_][A-Za-z0-9_]*\\s*=\\s*/.test(t)) continue;
-              if(/^(previous|change|change_pct|running_total|rolling_avg|pct_change|rank|year|month|revenue|dept_avg|idx|iqr|cutoff|customer_total|x|report|kpi|missing|result|total)\\s*=/.test(t)) continue;
-              defs.push(t); if(defs.length>=4) break;
-            }
-            return defs.length?defs.join(String.fromCharCode(10)):'Use the exact sample data shown in the solution.';
-          }
-          """
-          s=re.sub(r'function sampleInput\(code\)\{.*?\n\}\nasync function runPython', helper+'async function runPython', s, count=1, flags=re.S)
-          p.write_text(s,encoding='utf-8')
-          PY
       - name: Commit changes
         run: |
           git config user.name 'github-actions[bot]'
@@ -49,6 +27,6 @@ jobs:
           if git diff --cached --quiet; then
             echo 'No changes needed.'
           else
-            git commit -m 'Fix Python practice samples and detailed theory [skip ci]'
+            git commit -m 'Fix Python practice checker [skip ci]'
             git push
           fi
