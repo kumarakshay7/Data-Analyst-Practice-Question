@@ -31,6 +31,7 @@ jobs:
           test -f practice.html
           test -f QUESTION_BANK.md
           test -f theory_details.js
+          test -f datasets/practice_seed.sql
           echo "GitHub Pages files validated."
 
       - name: Repair Practical SQL question loader
@@ -77,6 +78,68 @@ jobs:
           html = re.sub(pattern, lambda _match: loader, html, count=1)
           path.write_text(html, encoding='utf-8')
           print('Practical SQL loader repaired successfully.')
+          PY
+
+      - name: Initialize Practical SQL database
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('practice.html')
+          html = path.read_text(encoding='utf-8')
+
+          marker = '<script id="practice-db-fix">'
+          if marker in html:
+              print('Database initializer already present.')
+              raise SystemExit(0)
+
+          script = r'''<script id="practice-db-fix">
+          (function () {
+            const seedUrl = 'datasets/practice_seed.sql';
+            const sqlJsUrl = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.13.0/sql-wasm.js';
+
+            async function initializePracticeDatabase() {
+              if (window.DB) return window.DB;
+              if (!window.initSqlJs) {
+                throw new Error('SQL.js has not loaded yet. Please refresh the page.');
+              }
+              window.SQL = await window.initSqlJs({
+                locateFile: file => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.13.0/' + file
+              });
+              window.DB = new window.SQL.Database();
+              const response = await fetch(seedUrl);
+              if (!response.ok) throw new Error('Could not load practice dataset: HTTP ' + response.status);
+              window.DB.run(await response.text());
+              return window.DB;
+            }
+
+            window.practiceDbReady = initializePracticeDatabase();
+
+            const originalRunSql = window.runSql;
+            window.runSql = async function () {
+              try {
+                await window.practiceDbReady;
+                return originalRunSql();
+              } catch (e) {
+                msg(e.message || String(e));
+              }
+            };
+
+            const originalCheckSql = window.checkSql;
+            window.checkSql = async function () {
+              try {
+                await window.practiceDbReady;
+                return originalCheckSql();
+              } catch (e) {
+                msg(e.message || String(e));
+              }
+            };
+          })();
+          </script>'''
+
+          html = html.replace('</body>', script + '</body>')
+          path.write_text(html, encoding='utf-8')
+          print('Practical SQL database initializer added.')
           PY
 
       - name: Add detailed theory explanations
