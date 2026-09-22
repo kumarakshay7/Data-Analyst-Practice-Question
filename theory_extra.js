@@ -26,15 +26,37 @@ missing = check[check['_merge'] != 'both']</pre><p>This shows records present on
     Q171:{html:`<p>When explaining SQL to a client, focus on the <b>business logic and result</b>, not SQL syntax.</p><p>Instead of saying "I used a window function with LAG," say, "I compared each week's sales with the previous week to identify where sales increased or decreased."</p><p>Use simple examples, numbers and visuals when helpful. Only go deeper into technical implementation if the client asks.</p>`},
     Q172:{html:`<p>Before presenting analysis, validate both the data and the business logic.</p><ol><li>Confirm the KPI definition.</li><li>Check source freshness and completeness.</li><li>Check duplicates and NULLs.</li><li>Validate joins and filters.</li><li>Reconcile totals with a trusted source.</li><li>Manually inspect a sample of records.</li></ol><p>Finally, document the assumptions, formula and reporting period so another person can reproduce the analysis.</p>`}
   };
+
+  let lastQuestion='';
+
   function apply(){
     const title=document.getElementById('title');
     const answer=document.querySelector('#page .answer');
     if(!title||!answer)return;
     const m=title.textContent.match(/Q(\d{3})/);
     if(!m)return;
-    const item=details['Q'+m[1]];
-    if(item) answer.innerHTML=item.html;
+    const key='Q'+m[1];
+    const item=details[key];
+    if(!item || lastQuestion===key)return;
+    answer.innerHTML=item.html;
+    lastQuestion=key;
   }
-  new MutationObserver(apply).observe(document.body,{childList:true,subtree:true});
-  setTimeout(apply,100);
+
+  // Do NOT observe the whole document. Changing answer.innerHTML itself creates
+  // a DOM mutation, so a body-wide MutationObserver can trigger an endless loop
+  // and make the browser show "Page Unresponsive" when moving between questions.
+  document.addEventListener('click',function(e){
+    const q=e.target.closest && e.target.closest('.qbtn');
+    if(!q)return;
+    setTimeout(apply,0);
+  });
+
+  document.addEventListener('click',function(e){
+    if(e.target.closest && e.target.closest('#theoryTab')){
+      lastQuestion='';
+      setTimeout(apply,0);
+    }
+  });
+
+  setTimeout(apply,0);
 })();
