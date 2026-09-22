@@ -34,39 +34,64 @@ jobs:
           echo "GitHub Pages files validated."
 
       - name: Repair Practical SQL question loader
+        shell: bash
         run: |
-          python - <<'PY'
+          python3 - <<'PY'
           from pathlib import Path
           import re
-          p = Path('practice.html')
-          s = p.read_text(encoding='utf-8')
-          loader = r'''fetch('QUESTION_BANK.md').then(r=>r.text()).then(t=>{
-          BANK=[];
-          for(const l of t.split(/\r?\n/)){
-            const m=l.match(/^\s*(\d+)\.\s+(.+)$/);
-            if(m && +m[1] <= 155){
-              BANK.push({n:+m[1],id:'Q'+String(m[1]).padStart(3,'0'),title:m[2].trim(),difficulty:diff(+m[1])});
+
+          path = Path('practice.html')
+          html = path.read_text(encoding='utf-8')
+
+          loader = r'''fetch('QUESTION_BANK.md')
+          .then(response => {
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            return response.text();
+          })
+          .then(text => {
+            BANK = [];
+            for (const line of text.split(/\r?\n/)) {
+              const match = line.match(/^\s*(\d+)\.\s+(.+)$/);
+              if (match && Number(match[1]) <= 155) {
+                BANK.push({
+                  n: Number(match[1]),
+                  id: 'Q' + String(match[1]).padStart(3, '0'),
+                  title: match[2].trim(),
+                  difficulty: diff(Number(match[1]))
+                });
+              }
             }
-          }
-          render();
-          }).catch(e=>{
-            document.getElementById('stats').textContent='Unable to load question bank';
-            document.getElementById('page').innerHTML='<div class="card"><div class="result err">❌ Could not load QUESTION_BANK.md. Please refresh the page.</div></div>';
-            console.error(e);
-          });</script>'''
+            render();
+          })
+          .catch(error => {
+            document.getElementById('stats').textContent = 'Unable to load question bank';
+            document.getElementById('page').innerHTML = '<div class="card"><div class="result err">❌ Could not load QUESTION_BANK.md. Please refresh the page.</div></div>';
+            console.error(error);
+          });
+          </script>'''
+
           pattern = r"fetch\('QUESTION_BANK\.md'\)[\s\S]*?</script>"
-          if re.search(pattern, s):
-              s = re.sub(pattern, loader, s, count=1)
-              p.write_text(s, encoding='utf-8')
-              print('Replaced the malformed question-bank loader with valid JavaScript.')
-          else:
-              raise SystemExit('Could not find QUESTION_BANK.md loader in practice.html')
+          if not re.search(pattern, html):
+              raise SystemExit('QUESTION_BANK.md loader was not found in practice.html')
+
+          html = re.sub(pattern, loader, html, count=1)
+          path.write_text(html, encoding='utf-8')
+          print('Practical SQL loader repaired successfully.')
           PY
 
       - name: Add detailed theory explanations
+        shell: bash
         run: |
-          sed -i '/<\/body>/i <script src="theory_details.js"><\/script>' practice.html
-          echo "Detailed theory explanations loaded."
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('practice.html')
+          html = path.read_text(encoding='utf-8')
+          tag = '<script src="theory_details.js"></script>'
+          if tag not in html:
+              html = html.replace('</body>', tag + '</body>')
+              path.write_text(html, encoding='utf-8')
+          print('Theory details ready.')
+          PY
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
