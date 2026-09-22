@@ -33,6 +33,22 @@ jobs:
           test -f theory_details.js
           echo "GitHub Pages files validated."
 
+      - name: Repair Practical SQL page JavaScript
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('practice.html')
+          s = p.read_text(encoding='utf-8')
+          broken = 't.split(/\\r?\n/)'
+          fixed = r't.split(/\r?\n/)'
+          if broken in s:
+              s = s.replace(broken, fixed)
+              p.write_text(s, encoding='utf-8')
+              print('Fixed malformed QUESTION_BANK.md line-splitting regex.')
+          else:
+              print('Regex already fixed or pattern not present.')
+          PY
+
       - name: Add detailed theory explanations
         run: |
           sed -i '/<\/body>/i <script src="theory_details.js"><\/script>' practice.html
