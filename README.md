@@ -2,46 +2,52 @@
 
 An interactive, scenario-based SQL practice lab for Data Analyst interviews.
 
-## 🚀 Open the Practice App
+## 🚀 Start Practice
 
-**[👉 Start SQL Practice](./index.html)**
+**[👉 Open the Interactive SQL Practice](./practice.html)**
 
-If you enable GitHub Pages for this repository, the same app can be opened directly as a website.
+For the best experience, enable GitHub Pages for this repository and open the published website.
 
-## What you can do
+## Practice flow
 
-- Read an interview-style SQL question
-- See the table structure
-- Think through the problem before coding
-- Get Hint 1 and Hint 2
-- Write your own SQL
-- Check your answer
-- Reveal the correct query
-- Read a simple line-by-line explanation
-- Practice a natural spoken interview answer
-- Track completed questions in your browser
+**Question → Table Structure → Sample Data → What is being asked? → Simple explanation → Hint 1 → Hint 2 → Write SQL → Run SQL → Check Answer → Correct/Wrong → Correct Query → Explanation → Expected Output → Natural Interview Answer → Follow-up Question**
 
-## Practice topics
+## What the practice page includes
 
-| Topic | Examples |
-|---|---|
-| Basics | SELECT, WHERE, CASE, NULL, aggregation |
-| Joins | INNER, LEFT, RIGHT, FULL, SELF JOIN |
-| Aggregation | GROUP BY, HAVING, business metrics |
-| Window Functions | ROW_NUMBER, RANK, DENSE_RANK, LAG, LEAD |
-| Date & Time | Consecutive dates, retention, time comparisons |
-| CTE & Subqueries | CTEs, EXISTS, correlated queries |
-| Advanced Scenarios | Complex interview SQL |
-| Business Cases | Sales, customers, KPIs, root-cause analysis |
-| SQL Optimization | Large datasets, indexes, execution plans |
-| Company Interview Questions | Company-specific interview practice |
+- 10 initial interview-style SQL questions
+- Easy / Medium / Hard filtering
+- Sample data for every question
+- SQL editor
+- **Run SQL** with browser-side execution
+- **Check Answer** based on the expected result
+- SQL error feedback
+- Hints before revealing the answer
+- Correct query and expected output
+- Simple explanation
+- Natural interview answer
+- Follow-up question
+- Browser progress tracking
 
-## Practice order
+## Topics
 
-**Basics → Joins → Aggregation → Window Functions → Date/Time → CTE/Subqueries → Advanced Scenarios → Business Cases → Company Interview Questions**
+- SQL Basics
+- INNER / LEFT / RIGHT / FULL / SELF JOIN
+- GROUP BY and HAVING
+- ROW_NUMBER, RANK, DENSE_RANK
+- LAG and LEAD
+- Consecutive dates / gaps and islands
+- CTE and subqueries
+- Running totals
+- Week-over-week analysis
+- Business case SQL
+- Company Interview Questions
+
+## Question bank
+
+The repository will grow from the initial 10 questions into a larger practice bank covering common Data Analyst interview patterns and company interview scenarios.
 
 ## Important
 
-The repository is designed to teach the reasoning behind the query, not just provide answers. Try the query yourself before revealing the solution.
+Try the query yourself before opening the solution. The goal is to learn the reasoning behind the SQL, not just memorize syntax.
 
-Primary SQL examples use PostgreSQL syntax where date arithmetic is required.
+The browser runner uses SQLite through sql.js for local practice. Some date functions or syntax can differ from PostgreSQL, MySQL, SQL Server, or Oracle, so the interview explanation will call out database-specific differences when relevant.
