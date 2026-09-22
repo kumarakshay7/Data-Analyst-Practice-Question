@@ -1,4 +1,5 @@
 name: Update Python Practice Page
+# Keep this workflow as the single automatic fixer for the Python page.
 on:
   push:
     branches: [main]
