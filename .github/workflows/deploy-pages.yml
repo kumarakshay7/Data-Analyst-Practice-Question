@@ -74,7 +74,7 @@ jobs:
           if not re.search(pattern, html):
               raise SystemExit('QUESTION_BANK.md loader was not found in practice.html')
 
-          html = re.sub(pattern, loader, html, count=1)
+          html = re.sub(pattern, lambda _match: loader, html, count=1)
           path.write_text(html, encoding='utf-8')
           print('Practical SQL loader repaired successfully.')
           PY
