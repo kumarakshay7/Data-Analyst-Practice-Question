@@ -4,7 +4,7 @@ An interactive interview practice website covering **SQL and Python/Pandas** for
 
 ## 🚀 Start Practice
 
-**[👉 Open Data Analyst Practice](https://kumarakshay7.github.io/SQL-Data-Analyst-Interview-Practice/practice.html)**
+**[👉 Open Data Analyst Practice](https://kumarakshay7.github.io/Data-Analyst-Practice-Question/practice.html)**
 
 Choose between the SQL section and the new Python section. Both are organized into Theory and Practical practice.
 
