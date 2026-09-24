@@ -1,223 +1,27 @@
 (() => {
-  // Python Theory UI patch
-  // - Remove duplicate question card.
-  // - Show sequential Q1, Q2, Q3... in navigation and top question title.
-  // - Use the requested interviewer icon in the top title.
-  // - Keep Next in the bottom-right of Interview answer.
-  // - Use the same distinct purple Next button as Python Practical.
-
-  function page() { return document.getElementById('page'); }
-
-  function visibleQuestionButtons() {
-    return Array.from(document.querySelectorAll('#nav .qbtn')).filter(btn => {
-      const style = window.getComputedStyle(btn);
-      return style.display !== 'none' && !btn.disabled;
-    });
+  function page(){ return document.getElementById('page'); }
+  function buttons(){ return [...document.querySelectorAll('#nav .qbtn')].filter(b=>getComputedStyle(b).display!=='none'&&!b.disabled); }
+  function clean(t){ return String(t||'').replace(/^PY-[TP]\d+\s*[·•:\-]\s*/i,'').replace(/^Q\s*\d+\s*[·•:\-]\s*/i,'').replace(/^🧑‍💼\s*/u,'').replace(/^🐍\s*/u,'').trim(); }
+  function formatNav(){ buttons().forEach((b,i)=>{ const t=clean(b.textContent); const w=`Q${i+1} · ${t}`; if(t&&b.textContent!==w)b.textContent=w; }); }
+  function formatTitle(){ const title=document.getElementById('title'); if(!title)return; const bs=buttons(); const active=bs.findIndex(b=>b.classList.contains('active')); const n=active>=0?active+1:1; const t=clean(bs[n-1]?.textContent||title.textContent); if(t&&!/^Python Theory Questions$/i.test(t)) title.textContent=`Q${n} · 🧑‍💼 ${t}`; }
+  function removeDuplicate(){ const root=page(); if(!root)return; [...root.children].filter(x=>x.classList?.contains('card')&&x.querySelector('.question')).forEach(x=>x.remove()); }
+  function interviewCard(){ const root=page(); if(!root)return null; return [...root.children].find(c=>c.classList?.contains('card')&&[...c.querySelectorAll('h3')].some(h=>/interview answer/i.test(h.textContent)))||null; }
+  function styleNext(b){ if(!b)return; b.id='pythonTheoryNextBtn'; b.type='button'; b.textContent='Next →'; Object.entries({background:'#7c3aed',color:'#fff',border:'0',borderRadius:'8px',padding:'10px 16px',fontWeight:'700',cursor:'pointer'}).forEach(([k,v])=>b.style.setProperty(k,v,'important')); b.onclick=nextQuestion; }
+  function addNext(){ const card=interviewCard(); if(!card)return; let b=card.querySelector('#pythonTheoryNextBtn'); if(!b){ const wrap=document.createElement('div'); wrap.className='python-theory-next-wrap'; wrap.style.cssText='display:flex;justify-content:flex-end;margin-top:16px;width:100%'; b=document.createElement('button'); wrap.appendChild(b); card.appendChild(wrap); } styleNext(b); }
+  function nextQuestion(){
+    const bs=buttons(); if(!bs.length)return;
+    const title=document.getElementById('title');
+    const currentText=clean(title?.textContent||'');
+    let i=bs.findIndex(b=>clean(b.textContent)===currentText);
+    if(i<0)i=bs.findIndex(b=>b.classList.contains('active'));
+    if(i<0)i=0;
+    const next=bs[(i+1)%bs.length];
+    if(!next)return;
+    next.click();
+    window.scrollTo({top:0,behavior:'smooth'});
+    setTimeout(apply,0); setTimeout(apply,80);
   }
-
-  function cleanText(text) {
-    return String(text || '')
-      .replace(/^PY-T\d+\s*[·•:\-]\s*/i, '')
-      .replace(/^Q\s*\d+\s*[·•:\-]\s*/i, '')
-      .replace(/^🧑‍💼\s*/u, '')
-      .replace(/^🐍\s*/u, '')
-      .trim();
-  }
-
-  function currentNumber() {
-    const buttons = visibleQuestionButtons();
-    const active = buttons.findIndex(btn => btn.classList.contains('active'));
-    return active >= 0 ? active + 1 : 1;
-  }
-
-  function formatNavigation() {
-    visibleQuestionButtons().forEach((btn, index) => {
-      const text = cleanText(btn.textContent);
-      const wanted = `Q${index + 1} · ${text}`;
-      // Do not rewrite identical text. This prevents the MutationObserver
-      // from triggering itself continuously and making the page unresponsive.
-      if (text && btn.textContent !== wanted) btn.textContent = wanted;
-    });
-  }
-
-  function formatTopQuestion() {
-    const title = document.getElementById('title');
-    if (!title) return;
-
-    const buttons = visibleQuestionButtons();
-    const number = currentNumber();
-    const active = buttons[number - 1];
-    const text = cleanText(active ? active.textContent : title.textContent);
-
-    if (text && !/^Python Theory Questions$/i.test(text)) {
-      const wanted = `Q${number} · 🧑‍💼 ${text}`;
-      if (title.textContent !== wanted) title.textContent = wanted;
-    }
-  }
-
-  function removeDuplicateQuestionCard() {
-    const root = page();
-    if (!root) return;
-    const cards = Array.from(root.children).filter(el => el.classList?.contains('card'));
-    cards.filter(card => card.querySelector('.question')).forEach(card => card.remove());
-  }
-
-  function getInterviewCard() {
-    const root = page();
-    if (!root) return null;
-    return Array.from(root.children).find(card =>
-      card.classList?.contains('card') &&
-      Array.from(card.querySelectorAll('h3')).some(h =>
-        h.textContent.trim().toLowerCase().includes('interview answer')
-      )
-    ) || null;
-  }
-
-  function styleNextButton(button) {
-    if (!button) return;
-    button.id = 'pythonTheoryNextBtn';
-    button.textContent = 'Next →';
-    button.type = 'button';
-
-    const styles = {
-      background: '#7c3aed',
-      color: '#ffffff',
-      border: '0',
-      borderRadius: '8px',
-      padding: '10px 16px',
-      fontWeight: '700',
-      cursor: 'pointer',
-      transition: 'background .15s ease, transform .15s ease'
-    };
-    Object.entries(styles).forEach(([key, value]) =>
-      button.style.setProperty(key, value, 'important')
-    );
-
-    button.onmouseenter = () => button.style.setProperty('background', '#6d28d9', 'important');
-    button.onmouseleave = () => button.style.setProperty('background', '#7c3aed', 'important');
-    button.onmousedown = () => button.style.setProperty('transform', 'translateY(1px)', 'important');
-    button.onmouseup = () => button.style.setProperty('transform', 'translateY(0)', 'important');
-    button.onclick = nextQuestion;
-  }
-
-  function injectStyle() {
-    let style = document.getElementById('pythonTheoryNextStyle');
-    if (!style) {
-      style = document.createElement('style');
-      style.id = 'pythonTheoryNextStyle';
-      document.head.appendChild(style);
-    }
-    style.textContent = `
-      #pythonTheoryNextBtn,
-      .python-theory-next-wrap #pythonTheoryNextBtn {
-        background: #7c3aed !important;
-        color: #fff !important;
-        border: 0 !important;
-        border-radius: 8px !important;
-        padding: 10px 16px !important;
-        font-weight: 700 !important;
-        cursor: pointer !important;
-      }
-      #pythonTheoryNextBtn:hover,
-      .python-theory-next-wrap #pythonTheoryNextBtn:hover {
-        background: #6d28d9 !important;
-        color: #fff !important;
-      }
-    `;
-  }
-
-  function nextQuestion() {
-    const buttons = visibleQuestionButtons();
-    if (!buttons.length) return;
-
-    const activeIndex = buttons.findIndex(btn => btn.classList.contains('active'));
-    const nextIndex = activeIndex >= 0 ? (activeIndex + 1) % buttons.length : 0;
-    const nextButton = buttons[nextIndex];
-    if (!nextButton) return;
-
-    // Use the app's own navigation button rather than duplicating its render logic.
-    nextButton.click();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    setTimeout(() => {
-      formatNavigation();
-      formatTopQuestion();
-      removeDuplicateQuestionCard();
-      addNextButton();
-    }, 0);
-    setTimeout(() => {
-      formatNavigation();
-      formatTopQuestion();
-      addNextButton();
-    }, 80);
-  }
-
-  function addNextButton() {
-    const card = getInterviewCard();
-    if (!card) return;
-    injectStyle();
-
-    let button = card.querySelector('#pythonTheoryNextBtn');
-    if (!button) {
-      button = Array.from(card.querySelectorAll('button')).find(btn =>
-        /^Next\s*→?$/i.test(btn.textContent.trim())
-      );
-    }
-
-    if (!button) {
-      const wrap = document.createElement('div');
-      wrap.className = 'python-theory-next-wrap';
-      wrap.style.cssText = 'display:flex;justify-content:flex-end;margin-top:16px;width:100%;';
-      button = document.createElement('button');
-      wrap.appendChild(button);
-      card.appendChild(wrap);
-    } else if (!button.parentElement.classList.contains('python-theory-next-wrap')) {
-      const wrap = document.createElement('div');
-      wrap.className = 'python-theory-next-wrap';
-      wrap.style.cssText = 'display:flex;justify-content:flex-end;margin-top:16px;width:100%;';
-      button.parentNode.insertBefore(wrap, button);
-      wrap.appendChild(button);
-    }
-    styleNextButton(button);
-  }
-
-  function apply() {
-    removeDuplicateQuestionCard();
-    formatNavigation();
-    formatTopQuestion();
-    addNextButton();
-  }
-
-  function startObserver() {
-    const root = page();
-    if (!root || root.dataset.pythonTheoryPatchAttached) return;
-    root.dataset.pythonTheoryPatchAttached = 'true';
-    let scheduled = false;
-    const observer = new MutationObserver(() => {
-      if (scheduled) return;
-      scheduled = true;
-      requestAnimationFrame(() => {
-        scheduled = false;
-        apply();
-      });
-    });
-    observer.observe(root, { childList: true, subtree: true });
-    apply();
-  }
-
-  function boot() {
-    const timer = setInterval(() => {
-      if (page() && document.querySelector('#nav .qbtn')) {
-        clearInterval(timer);
-        startObserver();
-      }
-    }, 100);
-    setTimeout(() => clearInterval(timer), 15000);
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot, { once: true });
-  } else {
-    boot();
-  }
+  function apply(){ removeDuplicate(); formatNav(); formatTitle(); addNext(); }
+  function boot(){ const timer=setInterval(()=>{ if(page()&&document.querySelector('#nav .qbtn')){clearInterval(timer); const root=page(); if(!root.dataset.pythonTheoryPatchAttached){root.dataset.pythonTheoryPatchAttached='true'; let scheduled=false; new MutationObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;apply();});}).observe(root,{childList:true,subtree:true});} apply(); } },100); setTimeout(()=>clearInterval(timer),15000); }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
