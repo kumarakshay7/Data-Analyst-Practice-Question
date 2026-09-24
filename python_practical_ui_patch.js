@@ -43,6 +43,24 @@
     setTimeout(addNextButton,0);
   }
 
+  function expandMainLayout(){
+    if(document.getElementById('fullWidthLayoutFix')) return;
+    const style=document.createElement('style');
+    style.id='fullWidthLayoutFix';
+    style.textContent=`
+      .main{
+        max-width:none !important;
+        width:100% !important;
+        margin:0 !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    expandMainLayout();
+    addNextButton();
+  });
   document.addEventListener('click',event=>{
     if(event.target.closest('.qbtn,#pythonPracticeTab,#pythonTheoryTab')) setTimeout(addNextButton,0);
   });
