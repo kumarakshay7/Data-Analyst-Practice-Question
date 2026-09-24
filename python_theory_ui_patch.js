@@ -8,13 +8,21 @@
     );
   }
 
+  // Remove any number of old display prefixes so repeated UI patches can
+  // never produce Q1.🧑‍💼Q1.🧑‍💼Q1...
   function clean(text) {
-    return String(text || '')
-      .replace(/^PY-[TP]\d+\s*[·•:\-]\s*/i, '')
-      .replace(/^Q\s*\d+\s*[·•:\-]\s*/i, '')
-      .replace(/^🧑‍💼\s*/u, '')
-      .replace(/^🐍\s*/u, '')
-      .trim();
+    let value = String(text || '').trim();
+    let previous;
+    do {
+      previous = value;
+      value = value
+        .replace(/^PY-[TP]\d+\s*[·•.:\-]\s*/i, '')
+        .replace(/^Q\s*\d+\s*[·•.:\-]\s*/i, '')
+        .replace(/^🧑‍💼\s*/u, '')
+        .replace(/^🐍\s*/u, '')
+        .trim();
+    } while (value !== previous);
+    return value;
   }
 
   function syncIndex() {
@@ -29,7 +37,7 @@
   function formatNav() {
     buttons().forEach((b, i) => {
       const text = clean(b.textContent);
-      if (text) b.textContent = `Q${i + 1} · 🧑‍💼 ${text}`;
+      if (text) b.textContent = `Q${i + 1}.🧑‍💼${text}`;
     });
   }
 
@@ -80,13 +88,10 @@
   function nextQuestion() {
     const bs = buttons();
     if (!bs.length) return;
-
-    // Keep our own position. Do not depend on the app's active CSS class.
     syncIndex();
     state.index = (state.index + 1) % bs.length;
     const next = bs[state.index];
     if (!next) return;
-
     next.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
