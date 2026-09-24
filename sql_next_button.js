@@ -1,7 +1,8 @@
 (() => {
   // Navigation/UI helper for both SQL Practical and SQL Theory.
-  // Shows sequential Q1, Q2, Q3..., puts the Q number before the question title,
-  // provides a working Next button, and removes the redundant instruction line.
+  // Shows sequential Q1, Q2, Q3..., places the number directly before
+  // the question title, provides a working Next button, and removes the
+  // redundant instruction line.
 
   function getVisibleQuestions() {
     if (typeof BANK === 'undefined' || typeof practicalIds === 'undefined') return [];
@@ -50,31 +51,30 @@
     const questionNumber = getQuestionNumber();
     if (!questionNumber) return;
 
-    let badge = card.querySelector('.sql-question-number');
+    // Remove any old standalone number badge created by earlier versions.
+    card.querySelectorAll('.sql-question-number').forEach(el => {
+      if (el.parentElement !== question) el.remove();
+    });
+
+    let badge = question.querySelector('.sql-question-number');
     if (!badge) {
       badge = document.createElement('span');
       badge.className = 'sql-question-number';
       badge.style.cssText = [
-        'display:inline-block',
-        'vertical-align:middle',
-        'margin-right:10px',
-        'background:#e9eef6',
-        'color:#172033',
-        'border:1px solid #d5dce7',
-        'border-radius:8px',
-        'padding:6px 10px',
-        'font-size:13px',
         'font-weight:700',
-        'line-height:1',
         'white-space:nowrap'
       ].join(';');
+      question.insertBefore(badge, question.firstChild);
     }
 
-    badge.textContent = `Q${questionNumber}`;
+    const numberText = `Q${questionNumber} · `;
+    if (badge.textContent !== numberText) {
+      badge.textContent = numberText;
+    }
 
-    // Display the question number BEFORE the question title.
-    if (badge.parentElement !== question.parentElement || badge.nextElementSibling !== question) {
-      question.parentElement.insertBefore(badge, question);
+    // Keep Q number as the first content inside the question heading.
+    if (question.firstChild !== badge) {
+      question.insertBefore(badge, question.firstChild);
     }
   }
 
