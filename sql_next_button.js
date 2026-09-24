@@ -62,13 +62,10 @@
     const questionNumber = getQuestionNumber();
     if (!questionNumber) return;
 
-    // Remove old standalone number badges from earlier versions.
     card.querySelectorAll('.sql-question-number').forEach(el => {
       if (el.parentElement !== question) el.remove();
     });
 
-    // Theory is already renumbered by theory_questions_patch.js.
-    // Never add another Q number when one is already present.
     const existingPrefix = question.textContent.match(/^\s*Q\d+\s*[·.-]\s*/);
     if (existingPrefix) return;
 
@@ -89,7 +86,16 @@
     const card = getQuestionCard();
     if (!card) return;
 
-    // Remove only the Theory and difficulty badges from the question card.
+    card.querySelectorAll('.badge').forEach(el => el.remove());
+  }
+
+  function removePracticalBadges() {
+    if (typeof mode === 'undefined' || mode !== 'practice') return;
+    const card = getQuestionCard();
+    if (!card) return;
+
+    // Remove the "Practical SQL" and difficulty badges from the top of the
+    // practical question card. The question itself remains unchanged.
     card.querySelectorAll('.badge').forEach(el => el.remove());
   }
 
@@ -127,7 +133,6 @@
       return;
     }
 
-    // SQL Theory: put Next in the Simple Answer card, bottom-right.
     const answerCard = getSimpleAnswerCard();
     if (!answerCard) return;
 
@@ -165,6 +170,7 @@
     requestAnimationFrame(() => {
       addQuestionNumber();
       removeTheoryBadges();
+      removePracticalBadges();
       removeInstructionLine();
       addNextButton();
     });
@@ -173,7 +179,6 @@
   function updateLayout() {
     if (typeof mode === 'undefined') return;
 
-    // Keep the existing compact Practical SQL layout.
     if (mode === 'practice') {
       const header = document.querySelector('.header');
       if (header) header.style.display = 'none';
@@ -181,6 +186,7 @@
 
     addQuestionNumber();
     removeTheoryBadges();
+    removePracticalBadges();
     removeInstructionLine();
     addNextButton();
   }
