@@ -51,13 +51,6 @@
       // Keep the current question number + title in the main header at the top.
       // Remove the entire duplicate intro card containing Practical SQL,
       // difficulty, duplicate question title, and the instruction text.
-      const firstCard = document.querySelector('#page > .card:first-child');
-      if (firstCard) {
-        const text = firstCard.textContent || '';
-        if (text.includes('Practical SQL') && text.includes('Write your query before looking at the solution.')) {
-          firstCard.remove();
-        }
-      }
 
       if (title && current) {
         title.textContent = `${current.id} · ${current.title}`;
