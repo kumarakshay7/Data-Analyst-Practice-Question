@@ -44,15 +44,25 @@
   }
 
   function cleanPracticalHeader() {
-    // Keep the main question title at the top of the page.
-    // Remove only the duplicate question title inside the first card.
+    const title = document.getElementById('title');
+    const subtitle = document.getElementById('subtitle');
+    const questionHeaders = document.querySelectorAll('#page > .card:first-child .question');
+
     if (typeof mode !== 'undefined' && mode === 'practice') {
-      const questionHeaders = document.querySelectorAll('#page > .card:first-child .question');
+      // Keep the current question number + title in the main header at the top.
+      // Remove only the duplicate question heading inside the first card.
+      if (title && current) {
+        title.textContent = `${current.id} · ${current.title}`;
+      }
+      if (subtitle) {
+        subtitle.textContent = 'Query-writing questions are separated from theory questions. Write SQL, run it, and check your result.';
+      }
       questionHeaders.forEach(el => {
         el.style.display = 'none';
       });
     } else {
-      const questionHeaders = document.querySelectorAll('#page > .card:first-child .question');
+      if (title) title.textContent = 'Practical SQL Questions';
+      if (subtitle) subtitle.textContent = 'Query-writing questions are separated from theory questions. Write SQL, run it, and check your result.';
       questionHeaders.forEach(el => {
         el.style.display = '';
       });
