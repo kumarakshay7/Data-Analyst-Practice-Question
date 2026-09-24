@@ -1,6 +1,6 @@
 // Python question display fix
-// Shows Python Theory and Practical questions as Q1.🧑‍💼Question text
-// instead of exposing internal IDs such as PY-T001 or PY-P016.
+// Final visible format: Q1.🧑‍💼Question text
+// Safely removes any number of previously-added Q/emoji prefixes.
 (() => {
   const page = () => document.getElementById('page');
   const nav = () => document.getElementById('nav');
@@ -13,12 +13,18 @@
   }
 
   function clean(text) {
-    return String(text || '')
-      .replace(/^PY-[TP]\d+\s*[·•:\-]\s*/i, '')
-      .replace(/^Q\s*\d+\s*[·•.\-]\s*/i, '')
-      .replace(/^🧑‍💼\s*/u, '')
-      .replace(/^🐍\s*/u, '')
-      .trim();
+    let value = String(text || '').trim();
+    let previous;
+    do {
+      previous = value;
+      value = value
+        .replace(/^PY-[TP]\d+\s*[·•.:\-]\s*/i, '')
+        .replace(/^Q\s*\d+\s*[·•.:\-]\s*/i, '')
+        .replace(/^🧑‍💼\s*/u, '')
+        .replace(/^🐍\s*/u, '')
+        .trim();
+    } while (value !== previous);
+    return value;
   }
 
   function currentIndex() {
