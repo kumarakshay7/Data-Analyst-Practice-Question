@@ -3,7 +3,7 @@
 // This file intentionally avoids a MutationObserver to keep question navigation responsive.
 (() => {
   const page = document.getElementById('page');
-  if (page) page.setAttribute('data-python-ui-patch', 'safe-v3');
+  if (page) page.setAttribute('data-python-ui-patch', 'safe-v4');
 
   function filteredQuestions(){
     const search=document.getElementById('search');
@@ -17,7 +17,14 @@
     );
   }
 
+  function removeThinkFirst(){
+    document.querySelectorAll('#page .card').forEach(card=>{
+      if(/think first/i.test(card.textContent||'')) card.remove();
+    });
+  }
+
   function addNextButton(){
+    removeThinkFirst();
     const clear=document.getElementById('clearBtn');
     if(!clear || document.getElementById('nextPythonBtn')) return;
     const button=document.createElement('button');
@@ -41,6 +48,7 @@
     if(nextButton) nextButton.click();
     window.scrollTo({top:0,behavior:'smooth'});
     setTimeout(addNextButton,0);
+    setTimeout(removeThinkFirst,50);
   }
 
   function expandMainLayout(){
@@ -59,13 +67,29 @@
 
   document.addEventListener('DOMContentLoaded',()=>{
     expandMainLayout();
+    removeThinkFirst();
     addNextButton();
   });
+
   document.addEventListener('click',event=>{
-    if(event.target.closest('.qbtn,#pythonPracticeTab,#pythonTheoryTab')) setTimeout(addNextButton,0);
+    if(event.target.closest('.qbtn,#pythonPracticeTab,#pythonTheoryTab')){
+      setTimeout(removeThinkFirst,0);
+      setTimeout(addNextButton,0);
+      setTimeout(removeThinkFirst,50);
+    }
   });
-  document.getElementById('search')?.addEventListener('input',()=>setTimeout(addNextButton,0));
-  document.getElementById('difficulty')?.addEventListener('change',()=>setTimeout(addNextButton,0));
+
+  document.getElementById('search')?.addEventListener('input',()=>{
+    setTimeout(removeThinkFirst,0);
+    setTimeout(addNextButton,0);
+  });
+
+  document.getElementById('difficulty')?.addEventListener('change',()=>{
+    setTimeout(removeThinkFirst,0);
+    setTimeout(addNextButton,0);
+  });
+
+  setTimeout(removeThinkFirst,0);
   setTimeout(addNextButton,0);
-  setTimeout(addNextButton,500);
+  setTimeout(removeThinkFirst,500);
 })();
