@@ -1,49 +1,50 @@
 (() => {
-  // Lightweight SQL Practical UI helper.
-  // Adds the Next button and keeps the practical question number visible.
+  // Navigation/UI helper for both SQL Practical and SQL Theory.
+  // Shows sequential Q1, Q2, Q3... and provides a working Next button.
 
-  function getPracticalQuestions() {
+  function getVisibleQuestions() {
     if (typeof BANK === 'undefined' || typeof practicalIds === 'undefined') return [];
 
     const search = document.getElementById('search');
     const difficulty = document.getElementById('difficulty');
     const s = (search?.value || '').toLowerCase().trim();
     const d = difficulty?.value || 'All';
+    const isTheory = typeof mode !== 'undefined' && mode === 'theory';
 
-    return BANK.filter(q =>
-      practicalIds.has(q.n) &&
-      (!s || q.title.toLowerCase().includes(s) || q.id.toLowerCase().includes(s)) &&
-      (d === 'All' || q.difficulty === d)
-    ).sort((a, b) => a.n - b.n);
+    return BANK
+      .filter(q => {
+        const inSection = isTheory ? !practicalIds.has(q.n) : practicalIds.has(q.n);
+        return inSection &&
+          (!s || q.title.toLowerCase().includes(s) || q.id.toLowerCase().includes(s)) &&
+          (d === 'All' || q.difficulty === d);
+      })
+      .sort((a, b) => a.n - b.n);
   }
 
   function getQuestionNumber() {
     if (typeof current === 'undefined' || !current) return null;
-
-    const questions = getPracticalQuestions();
+    const questions = getVisibleQuestions();
     const index = questions.findIndex(q => q.n === current.n);
-
-    // Sequential number for Practical SQL: Q1, Q2, Q3 ...
     return index >= 0 ? index + 1 : null;
   }
 
-  function addQuestionNumber() {
-    if (typeof mode !== 'undefined' && mode !== 'practice') return;
-
+  function getQuestionCard() {
     const page = document.getElementById('page');
-    if (!page) return;
+    if (!page) return null;
+
+    const cards = Array.from(page.children).filter(el => el.classList?.contains('card'));
+    return cards.find(el => {
+      const style = window.getComputedStyle(el);
+      return style.display !== 'none' && el.querySelector('.question');
+    }) || null;
+  }
+
+  function addQuestionNumber() {
+    const card = getQuestionCard();
+    if (!card) return;
 
     const questionNumber = getQuestionNumber();
     if (!questionNumber) return;
-
-    // Use the first visible question card, so the number is not attached to
-    // the duplicate card that the helper hides.
-    const cards = Array.from(page.children).filter(el => el.classList?.contains('card'));
-    const card = cards.find(el => {
-      const style = window.getComputedStyle(el);
-      return style.display !== 'none' && el.querySelector('.question');
-    }) || cards.find(el => window.getComputedStyle(el).display !== 'none');
-    if (!card) return;
 
     card.style.position = 'relative';
 
@@ -72,28 +73,52 @@
   }
 
   function addNextButton() {
-    if (typeof mode !== 'undefined' && mode !== 'practice') return;
+    const page = document.getElementById('page');
+    if (!page) return;
 
-    const buttons = document.querySelector('#page .buttons');
-    if (!buttons) return;
+    const isTheory = typeof mode !== 'undefined' && mode === 'theory';
+    const isPractice = typeof mode !== 'undefined' && mode === 'practice';
+    if (!isTheory && !isPractice) return;
+
     if (document.getElementById('nextQuestionBtn')) return;
 
-    const clear = buttons.querySelector('.clear');
-    if (!clear) return;
+    if (isPractice) {
+      const buttons = page.querySelector('.buttons');
+      if (!buttons) return;
 
+      const clear = buttons.querySelector('.clear');
+      if (!clear) return;
+
+      const button = createNextButton();
+      clear.insertAdjacentElement('afterend', button);
+      return;
+    }
+
+    // Theory has no editor button row, so place Next at the bottom of the
+    // first question card without changing the existing answer/tip cards.
+    const card = getQuestionCard();
+    if (!card) return;
+
+    const buttonWrap = document.createElement('div');
+    buttonWrap.className = 'buttons theory-next-wrap';
+    buttonWrap.style.cssText = 'justify-content:flex-end;margin-top:18px;';
+    buttonWrap.appendChild(createNextButton());
+    card.appendChild(buttonWrap);
+  }
+
+  function createNextButton() {
     const button = document.createElement('button');
     button.id = 'nextQuestionBtn';
     button.type = 'button';
     button.className = 'btn clear';
     button.textContent = 'Next →';
-    button.title = 'Open the next SQL practical question';
+    button.title = 'Open the next question';
     button.onclick = nextQuestion;
-
-    clear.insertAdjacentElement('afterend', button);
+    return button;
   }
 
   function nextQuestion() {
-    const questions = getPracticalQuestions();
+    const questions = getVisibleQuestions();
     if (!questions.length || typeof current === 'undefined') return;
 
     let index = questions.findIndex(q => q.n === current?.n);
@@ -104,56 +129,63 @@
 
     show(next.n);
     window.scrollTo(0, 0);
-    setTimeout(() => {
-      removeDuplicatePracticalCard();
+
+    // show() rebuilds #page, so wait for the new DOM before adding controls.
+    requestAnimationFrame(() => {
       addQuestionNumber();
       addNextButton();
-    }, 0);
+    });
   }
 
-  function updatePracticalLayout() {
-    if (typeof mode !== 'undefined' && mode !== 'practice') return;
+  function updateLayout() {
+    if (typeof mode === 'undefined') return;
 
-    const header = document.querySelector('.header');
-    if (header) header.style.display = 'none';
+    // Keep the existing compact Practical SQL layout.
+    if (mode === 'practice') {
+      const header = document.querySelector('.header');
+      if (header) header.style.display = 'none';
+    }
 
     addQuestionNumber();
     addNextButton();
-  }
-
-  function removeDuplicatePracticalCard() {
-    if (typeof mode !== 'undefined' && mode !== 'practice') return;
-
-    const page = document.getElementById('page');
-    if (!page) return;
-
-    const firstCard = page.querySelector(':scope > .card');
-    if (!firstCard) return;
-
-    // Hide only the duplicate practical question card when it matches the
-    // question/meta structure. The main question remains untouched.
-    if (firstCard.querySelector('.question') && firstCard.querySelector('.meta')) {
-      firstCard.style.display = 'none';
-    }
   }
 
   function apply() {
     if (typeof BANK === 'undefined' || !Array.isArray(BANK) || !BANK.length) return false;
+    updateLayout();
+    return !!getQuestionCard();
+  }
 
-    // Remove the duplicate card first, then place the Q number on the
-    // remaining visible question card.
-    removeDuplicatePracticalCard();
-    updatePracticalLayout();
-    addQuestionNumber();
-    addNextButton();
-    return true;
+  function watchPageChanges() {
+    const page = document.getElementById('page');
+    if (!page || page.dataset.navigationObserverAttached) return;
+
+    page.dataset.navigationObserverAttached = 'true';
+    let scheduled = false;
+
+    const observer = new MutationObserver(() => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(() => {
+        scheduled = false;
+        apply();
+      });
+    });
+
+    observer.observe(page, { childList: true, subtree: true });
   }
 
   function waitForApp() {
     let attempts = 0;
     const timer = setInterval(() => {
       attempts += 1;
-      if (apply() || attempts >= 50) clearInterval(timer);
+      if (typeof BANK !== 'undefined' && Array.isArray(BANK) && BANK.length) {
+        apply();
+        watchPageChanges();
+        clearInterval(timer);
+      } else if (attempts >= 100) {
+        clearInterval(timer);
+      }
     }, 100);
   }
 
