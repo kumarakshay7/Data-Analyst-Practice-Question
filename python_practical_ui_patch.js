@@ -5,7 +5,7 @@
 // - Keep Next button working and use a distinct purple color.
 (() => {
   const page = document.getElementById('page');
-  if (page) page.setAttribute('data-python-ui-patch', 'safe-v5');
+  if (page) page.setAttribute('data-python-ui-patch', 'safe-v6');
 
   function filteredQuestions(){
     const search=document.getElementById('search');
@@ -19,11 +19,15 @@
     );
   }
 
-  function currentQuestionNumber(){
-    const buttons=[...document.querySelectorAll('#nav .qbtn')].filter(btn=>{
+  function visibleQuestionButtons(){
+    return [...document.querySelectorAll('#nav .qbtn')].filter(btn=>{
       const style=window.getComputedStyle(btn);
       return style.display!=='none' && !btn.disabled;
     });
+  }
+
+  function currentQuestionNumber(){
+    const buttons=visibleQuestionButtons();
     const activeIndex=buttons.findIndex(btn=>btn.classList.contains('active'));
     return activeIndex>=0 ? activeIndex+1 : 1;
   }
@@ -44,7 +48,8 @@
     const text=cleanQuestionText(question.textContent);
     if(!text) return;
 
-    question.textContent=`Q${currentQuestionNumber()} · 🧑‍💼 ${text}`;
+    const wanted=`Q${currentQuestionNumber()} · 🧑‍💼 ${text}`;
+    if(question.textContent!==wanted) question.textContent=wanted;
   }
 
   function removeThinkFirst(){
@@ -126,17 +131,19 @@
   }
 
   function nextQuestion(){
-    const arr=filteredQuestions();
-    if(!arr.length) return;
+    const buttons=visibleQuestionButtons();
+    if(!buttons.length) return;
 
-    const active=document.querySelector('#nav .qbtn.active');
-    const currentId=active ? cleanQuestionText(active.textContent).split(' · ')[0].trim() : '';
-    const index=arr.findIndex(q=>q[0]===currentId);
-    const next=arr[(index+1+arr.length)%arr.length];
-    const nextButton=[...document.querySelectorAll('#nav .qbtn')].find(b=>b.textContent.includes(next[0]));
+    const activeIndex=buttons.findIndex(btn=>btn.classList.contains('active'));
+    const nextIndex=activeIndex>=0 ? (activeIndex+1)%buttons.length : 0;
+    const nextButton=buttons[nextIndex];
+    if(!nextButton) return;
 
-    if(nextButton) nextButton.click();
+    // Use the app's own question-navigation button so all existing rendering
+    // and state updates continue to work.
+    nextButton.click();
     window.scrollTo({top:0,behavior:'smooth'});
+
     setTimeout(()=>{
       removeThinkFirst();
       formatQuestionHeading();
@@ -145,7 +152,7 @@
     setTimeout(()=>{
       removeThinkFirst();
       formatQuestionHeading();
-    },50);
+    },80);
   }
 
   function expandMainLayout(){
@@ -176,7 +183,7 @@
   document.addEventListener('click',event=>{
     if(event.target.closest('.qbtn,#pythonPracticeTab,#pythonTheoryTab')){
       setTimeout(apply,0);
-      setTimeout(apply,50);
+      setTimeout(apply,80);
     }
   });
 
