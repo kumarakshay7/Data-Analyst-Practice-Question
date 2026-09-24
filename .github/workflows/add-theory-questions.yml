@@ -1,0 +1,41 @@
+name: Add SQL Theory Question Bank
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  add-theory-bank:
+    if: ${{ !contains(github.event.head_commit.message, 'Add SQL theory question bank') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Add theory question bank script
+        shell: python
+        run: |
+          from pathlib import Path
+
+          p = Path('practice.html')
+          s = p.read_text(encoding='utf-8')
+          tag = '<script src="theory_questions_patch.js"></script>'
+
+          if tag not in s:
+              if '</body>' not in s:
+                  raise SystemExit('practice.html has no closing body tag')
+              s = s.replace('</body>', tag + '</body>')
+              p.write_text(s, encoding='utf-8')
+
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add practice.html theory_questions_patch.js .github/workflows/add-theory-questions.yml
+          git diff --cached --quiet && exit 0
+          git commit -m "Add SQL theory question bank"
+          git push
