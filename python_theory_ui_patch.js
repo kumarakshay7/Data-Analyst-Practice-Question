@@ -33,7 +33,10 @@
   function formatNavigation() {
     visibleQuestionButtons().forEach((btn, index) => {
       const text = cleanText(btn.textContent);
-      if (text) btn.textContent = `Q${index + 1} · ${text}`;
+      const wanted = `Q${index + 1} · ${text}`;
+      // Do not rewrite identical text. This prevents the MutationObserver
+      // from triggering itself continuously and making the page unresponsive.
+      if (text && btn.textContent !== wanted) btn.textContent = wanted;
     });
   }
 
@@ -47,7 +50,8 @@
     const text = cleanText(active ? active.textContent : title.textContent);
 
     if (text && !/^Python Theory Questions$/i.test(text)) {
-      title.textContent = `Q${number} · 🧑‍💼 ${text}`;
+      const wanted = `Q${number} · 🧑‍💼 ${text}`;
+      if (title.textContent !== wanted) title.textContent = wanted;
     }
   }
 
@@ -91,7 +95,7 @@
 
     button.onmouseenter = () => button.style.setProperty('background', '#6d28d9', 'important');
     button.onmouseleave = () => button.style.setProperty('background', '#7c3aed', 'important');
-    button.onmousedown = () => button.style.setProperty('transform', 'translateY(1px', 'important');
+    button.onmousedown = () => button.style.setProperty('transform', 'translateY(1px)', 'important');
     button.onmouseup = () => button.style.setProperty('transform', 'translateY(0)', 'important');
     button.onclick = nextQuestion;
   }
@@ -125,10 +129,27 @@
   function nextQuestion() {
     const buttons = visibleQuestionButtons();
     if (!buttons.length) return;
+
     const activeIndex = buttons.findIndex(btn => btn.classList.contains('active'));
     const nextIndex = activeIndex >= 0 ? (activeIndex + 1) % buttons.length : 0;
-    buttons[nextIndex].click();
+    const nextButton = buttons[nextIndex];
+    if (!nextButton) return;
+
+    // Use the app's own navigation button rather than duplicating its render logic.
+    nextButton.click();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    setTimeout(() => {
+      formatNavigation();
+      formatTopQuestion();
+      removeDuplicateQuestionCard();
+      addNextButton();
+    }, 0);
+    setTimeout(() => {
+      formatNavigation();
+      formatTopQuestion();
+      addNextButton();
+    }, 80);
   }
 
   function addNextButton() {
