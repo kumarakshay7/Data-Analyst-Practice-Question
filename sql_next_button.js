@@ -44,24 +44,18 @@
   }
 
   function cleanPracticalHeader() {
-    const title = document.getElementById('title');
-    const subtitle = document.getElementById('subtitle');
-    const header = document.querySelector('.header');
-
-    if (!title || !subtitle || !header) return;
-
+    // Keep the main question title at the top of the page.
+    // Remove only the duplicate question title inside the first card.
     if (typeof mode !== 'undefined' && mode === 'practice') {
-      // The question is already displayed inside the question card.
-      // Remove the duplicate question heading above it, matching the Python layout.
-      title.style.display = 'none';
-      subtitle.style.display = 'none';
-      header.style.marginBottom = '0';
-      header.style.minHeight = '0';
+      const questionHeaders = document.querySelectorAll('#page > .card:first-child .question');
+      questionHeaders.forEach(el => {
+        el.style.display = 'none';
+      });
     } else {
-      title.style.display = '';
-      subtitle.style.display = '';
-      header.style.marginBottom = '';
-      header.style.minHeight = '';
+      const questionHeaders = document.querySelectorAll('#page > .card:first-child .question');
+      questionHeaders.forEach(el => {
+        el.style.display = '';
+      });
     }
   }
 
