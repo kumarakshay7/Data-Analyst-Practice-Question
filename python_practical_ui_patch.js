@@ -1,33 +1,149 @@
 // Python Practical UI patch
-// Keeps Q1/Q2/Q3 labels, removes duplicate Think First card,
-// and makes Next navigation independent of the active CSS class.
+// Keeps sequential Q numbers, removes Think First, and provides reliable Next navigation.
 (() => {
-  const page=()=>document.getElementById('page');
-  function buttons(){return [...document.querySelectorAll('#nav .qbtn')].filter(b=>getComputedStyle(b).display!=='none'&&!b.disabled)}
-  function clean(t){return String(t||'').replace(/^PY-[TP]\d+\s*[·•:\-]\s*/i,'').replace(/^Q\s*\d+\s*[·•:\-]\s*/i,'').replace(/^🧑‍💼\s*/u,'').replace(/^🐍\s*/u,'').trim()}
-  function number(){const bs=buttons();const a=bs.findIndex(b=>b.classList.contains('active'));return a>=0?a+1:1}
-  function formatHeading(){const q=document.querySelector('#page .question');if(!q)return;const t=clean(q.textContent);if(t)q.textContent=`Q${number()} · 🧑‍💼 ${t}`}
-  function removeThink(){document.querySelectorAll('#page .card').forEach(c=>{if(/think first/i.test(c.textContent||''))c.remove()})}
-  function styleNext(b){if(!b)return;b.id='nextPythonBtn';b.type='button';b.textContent='Next →';Object.entries({background:'#7c3aed',color:'#fff',border:'0',borderRadius:'8px',padding:'10px 16px',fontWeight:'700',cursor:'pointer'}).forEach(([k,v])=>b.style.setProperty(k,v,'important'));b.onclick=nextQuestion}
-  function addNext(){removeThink();let b=document.getElementById('nextPythonBtn');const clear=document.getElementById('clearBtn');if(!clear)return;if(!b){b=document.createElement('button');b.className='btn clear';clear.insertAdjacentElement('afterend',b)}styleNext(b)}
-  function nextQuestion(){
-    const bs=buttons();if(!bs.length)return;
-    const q=document.querySelector('#page .question');
-    const currentText=clean(q?.textContent||'');
-    let i=bs.findIndex(b=>clean(b.textContent)===currentText);
-    if(i<0){const title=document.getElementById('title');i=bs.findIndex(b=>clean(b.textContent)===clean(title?.textContent||''))}
-    if(i<0)i=bs.findIndex(b=>b.classList.contains('active'));
-    if(i<0)i=0;
-    const next=bs[(i+1)%bs.length];if(!next)return;
-    next.click();window.scrollTo({top:0,behavior:'smooth'});
-    setTimeout(apply,0);setTimeout(apply,80);
+  const state = { index: -1 };
+  const page = () => document.getElementById('page');
+
+  function buttons() {
+    return [...document.querySelectorAll('#nav .qbtn')].filter(b =>
+      getComputedStyle(b).display !== 'none' && !b.disabled
+    );
   }
-  function expand(){if(document.getElementById('fullWidthLayoutFix'))return;const s=document.createElement('style');s.id='fullWidthLayoutFix';s.textContent='.main{max-width:none!important;width:100%!important;margin:0!important}';document.head.appendChild(s)}
-  function apply(){removeThink();formatHeading();addNext()}
-  function boot(){expand();apply();setTimeout(apply,300);setTimeout(apply,800)}
-  document.addEventListener('DOMContentLoaded',boot,{once:true});
-  document.addEventListener('click',e=>{if(e.target.closest('.qbtn,#pythonPracticeTab,#pythonTheoryTab')){setTimeout(apply,0);setTimeout(apply,80)}});
-  document.getElementById('search')?.addEventListener('input',()=>setTimeout(apply,0));
-  document.getElementById('difficulty')?.addEventListener('change',()=>setTimeout(apply,0));
-  if(document.readyState!=='loading')boot();
+
+  function clean(text) {
+    return String(text || '')
+      .replace(/^PY-[TP]\d+\s*[·•:\-]\s*/i, '')
+      .replace(/^Q\s*\d+\s*[·•:\-]\s*/i, '')
+      .replace(/^🧑‍💼\s*/u, '')
+      .replace(/^🐍\s*/u, '')
+      .trim();
+  }
+
+  function syncIndex() {
+    const bs = buttons();
+    if (!bs.length) return -1;
+    const active = bs.findIndex(b => b.classList.contains('active'));
+    if (active >= 0) state.index = active;
+    if (state.index < 0 || state.index >= bs.length) state.index = 0;
+    return state.index;
+  }
+
+  function formatHeading() {
+    const question = document.querySelector('#page .question');
+    if (!question) return;
+    const text = clean(question.textContent);
+    if (text) {
+      syncIndex();
+      question.textContent = `Q${Math.max(0, state.index) + 1} · 🧑‍💼 ${text}`;
+    }
+  }
+
+  function removeThinkFirst() {
+    document.querySelectorAll('#page .card').forEach(card => {
+      if (/think first/i.test(card.textContent || '')) card.remove();
+    });
+  }
+
+  function styleNext(button) {
+    if (!button) return;
+    button.id = 'nextPythonBtn';
+    button.type = 'button';
+    button.textContent = 'Next →';
+    Object.entries({
+      background: '#7c3aed', color: '#fff', border: '0', borderRadius: '8px',
+      padding: '10px 16px', fontWeight: '700', cursor: 'pointer'
+    }).forEach(([k, v]) => button.style.setProperty(k, v, 'important'));
+    button.onclick = nextQuestion;
+  }
+
+  function addNext() {
+    removeThinkFirst();
+    const clear = document.getElementById('clearBtn');
+    if (!clear) return;
+
+    let button = document.getElementById('nextPythonBtn');
+    if (!button) {
+      button = document.createElement('button');
+      button.className = 'btn clear';
+      clear.insertAdjacentElement('afterend', button);
+    }
+    styleNext(button);
+  }
+
+  function nextQuestion() {
+    const bs = buttons();
+    if (!bs.length) return;
+
+    syncIndex();
+    state.index = (state.index + 1) % bs.length;
+    const next = bs[state.index];
+    if (!next) return;
+
+    next.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    setTimeout(apply, 0);
+    setTimeout(apply, 100);
+  }
+
+  function handleQuestionClick(event) {
+    const button = event.target.closest('#nav .qbtn');
+    if (!button) return;
+    const bs = buttons();
+    const i = bs.indexOf(button);
+    if (i >= 0) state.index = i;
+    setTimeout(apply, 0);
+  }
+
+  function apply() {
+    syncIndex();
+    removeThinkFirst();
+    formatHeading();
+    addNext();
+  }
+
+  function expand() {
+    if (document.getElementById('fullWidthLayoutFix')) return;
+    const style = document.createElement('style');
+    style.id = 'fullWidthLayoutFix';
+    style.textContent = '.main{max-width:none!important;width:100%!important;margin:0!important}';
+    document.head.appendChild(style);
+  }
+
+  document.addEventListener('click', handleQuestionClick, true);
+  document.addEventListener('click', event => {
+    if (event.target.closest('#pythonPracticeTab')) {
+      state.index = 0;
+      setTimeout(apply, 0);
+      setTimeout(apply, 100);
+    }
+  });
+
+  document.getElementById('search')?.addEventListener('input', () => {
+    state.index = 0;
+    setTimeout(apply, 0);
+  });
+  document.getElementById('difficulty')?.addEventListener('change', () => {
+    state.index = 0;
+    setTimeout(apply, 0);
+  });
+
+  function boot() {
+    expand();
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries++;
+      if (page() && document.querySelector('#nav .qbtn')) {
+        clearInterval(timer);
+        apply();
+      }
+      if (tries > 150) clearInterval(timer);
+    }, 100);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
+  } else {
+    boot();
+  }
 })();
