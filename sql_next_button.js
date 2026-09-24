@@ -29,14 +29,19 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   function cleanPracticalHeader() {
+    const header = document.querySelector('.header');
     const title = document.getElementById('title');
     const subtitle = document.getElementById('subtitle');
+    if (!header) return;
+
     if (typeof mode !== 'undefined' && mode === 'practice') {
-      if (title && current) title.textContent = `${current.id} · ${current.title}`;
-      if (subtitle) subtitle.textContent = 'Query-writing questions are separated from theory questions. Write SQL, run it, and check your result.';
+      // Remove the large static "Practical SQL Questions" header from Practical SQL.
+      header.style.display = 'none';
     } else {
-      if (title) title.textContent = 'Practical SQL Questions';
-      if (subtitle) subtitle.textContent = 'Query-writing questions are separated from theory questions. Write SQL, run it, and check your result.';
+      // Keep a clean header for SQL Theory.
+      header.style.display = 'flex';
+      if (title) title.textContent = 'SQL Theory Questions';
+      if (subtitle) subtitle.textContent = 'SQL concepts and interview-focused explanations, from basic to advanced.';
     }
   }
   function removePracticalDuplicateCard() {
@@ -61,6 +66,39 @@
       document.head.appendChild(style);
     }
   }
+
+  function renumberTheoryQuestions() {
+    if (typeof mode === 'undefined' || mode !== 'theory' || typeof BANK === 'undefined' || typeof practicalIds === 'undefined') return;
+
+    const theory = BANK
+      .filter(q => !practicalIds.has(q.n))
+      .sort((a, b) => a.n - b.n);
+
+    if (!theory.length) return;
+
+    const displayNumber = new Map(theory.map((q, index) => [q.n, index + 1]));
+
+    // Sidebar: always show Q1, Q2, Q3... instead of the old source IDs such as Q030.
+    const buttons = document.querySelectorAll('#nav .qbtn');
+    buttons.forEach(button => {
+      const text = button.textContent.trim();
+      const match = text.match(/^Q\d+\s*[·.-]\s*(.*)$/s);
+      if (!match) return;
+      const title = match[1].trim();
+      const question = theory.find(q => q.title === title || text.includes(q.title));
+      if (question) button.textContent = `Q${displayNumber.get(question.n)} · ${question.title}`;
+    });
+
+    // Current question card: show the same sequential number.
+    if (typeof current !== 'undefined' && current) {
+      const number = displayNumber.get(current.n);
+      const questionHeading = document.querySelector('#page .question');
+      if (number && questionHeading) {
+        questionHeading.textContent = `Q${number} · 🧑‍💼 ${current.title}`;
+      }
+    }
+  }
+
   function watchPage() {
     const page = document.getElementById('page');
     if (!page) return;
@@ -68,12 +106,24 @@
       addNextButton();
       cleanPracticalHeader();
       removePracticalDuplicateCard();
+      renumberTheoryQuestions();
     });
     observer.observe(page, { childList: true, subtree: true });
+
+    const nav = document.getElementById('nav');
+    if (nav) {
+      const navObserver = new MutationObserver(() => {
+        renumberTheoryQuestions();
+      });
+      navObserver.observe(nav, { childList: true, subtree: true });
+    }
+
     addNextButton();
     cleanPracticalHeader();
     removePracticalDuplicateCard();
+    renumberTheoryQuestions();
   }
+
   function expandMainLayout() {
     if (document.getElementById('fullWidthLayoutFix')) return;
     const style = document.createElement('style');
@@ -84,10 +134,13 @@
 
   function applyExtraQuestions() {
     if (window.__extraSqlQuestionsApplied || typeof BANK === 'undefined' || !Array.isArray(BANK) || !BANK.length) return false;
+    if (typeof extraQuestions === 'undefined' || !Array.isArray(extraQuestions)) return false;
     window.__extraSqlQuestionsApplied = true;
     for (const q of extraQuestions) {
-      BANK.push({n:q.n,id:'Q'+q.n,title:q.title,difficulty:q.difficulty});
-      practicalIds.add(q.n);
+      if (!BANK.some(x => x.n === q.n)) {
+        BANK.push({n:q.n,id:'Q'+q.n,title:q.title,difficulty:q.difficulty});
+        practicalIds.add(q.n);
+      }
     }
     const originalMeta = meta;
     const originalSolution = solution;
@@ -107,14 +160,32 @@
     if (typeof render === 'function') render();
     return true;
   }
+
   function waitForQuestionBank() {
     if (applyExtraQuestions()) return;
     const timer = setInterval(() => { if (applyExtraQuestions()) clearInterval(timer); }, 50);
     setTimeout(() => clearInterval(timer), 10000);
   }
+
   document.addEventListener('DOMContentLoaded', () => {
     expandMainLayout();
     watchPage();
     waitForQuestionBank();
+
+    // Re-apply the UI fixes after switching between Theory and Practical SQL.
+    document.getElementById('theoryTab')?.addEventListener('click', () => {
+      setTimeout(() => {
+        cleanPracticalHeader();
+        renumberTheoryQuestions();
+      }, 20);
+      setTimeout(() => renumberTheoryQuestions(), 100);
+    });
+    document.getElementById('practiceTab')?.addEventListener('click', () => {
+      setTimeout(() => {
+        cleanPracticalHeader();
+        removePracticalDuplicateCard();
+        addNextButton();
+      }, 20);
+    });
   });
 })();
