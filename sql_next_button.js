@@ -36,10 +36,13 @@
     const questionNumber = getQuestionNumber();
     if (!questionNumber) return;
 
-    // The first visible question card contains the Practical SQL badge/title.
-    // Add the number to the top-right without changing the question text.
+    // Use the first visible question card, so the number is not attached to
+    // the duplicate card that the helper hides.
     const cards = Array.from(page.children).filter(el => el.classList?.contains('card'));
-    const card = cards.find(el => el.querySelector('.question')) || cards[0];
+    const card = cards.find(el => {
+      const style = window.getComputedStyle(el);
+      return style.display !== 'none' && el.querySelector('.question');
+    }) || cards.find(el => window.getComputedStyle(el).display !== 'none');
     if (!card) return;
 
     card.style.position = 'relative';
@@ -59,7 +62,8 @@
         'padding:7px 11px',
         'font-size:12px',
         'font-weight:700',
-        'line-height:1'
+        'line-height:1',
+        'z-index:2'
       ].join(';');
       card.appendChild(badge);
     }
@@ -101,6 +105,7 @@
     show(next.n);
     window.scrollTo(0, 0);
     setTimeout(() => {
+      removeDuplicatePracticalCard();
       addQuestionNumber();
       addNextButton();
     }, 0);
@@ -135,8 +140,12 @@
   function apply() {
     if (typeof BANK === 'undefined' || !Array.isArray(BANK) || !BANK.length) return false;
 
-    updatePracticalLayout();
+    // Remove the duplicate card first, then place the Q number on the
+    // remaining visible question card.
     removeDuplicatePracticalCard();
+    updatePracticalLayout();
+    addQuestionNumber();
+    addNextButton();
     return true;
   }
 
