@@ -1,4 +1,5 @@
 (() => {
+  // SQL Practical Next button: follows the current filtered question order.
   function filteredQuestions(){
     const search=document.getElementById('search');
     const difficulty=document.getElementById('difficulty');
