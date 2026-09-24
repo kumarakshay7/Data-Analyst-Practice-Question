@@ -6,7 +6,6 @@
     const d = difficulty?.value || 'All';
     return BANK.filter(q => mode === 'practice' && practicalIds.has(q.n) && (!s || q.title.toLowerCase().includes(s) || q.id.toLowerCase().includes(s)) && (d === 'All' || q.difficulty === d));
   }
-
   function addNextButton() {
     if (typeof mode !== 'undefined' && mode !== 'practice') return;
     const buttons = document.querySelector('#page .buttons');
@@ -21,7 +20,6 @@
     button.addEventListener('click', nextQuestion);
     clear.insertAdjacentElement('afterend', button);
   }
-
   function nextQuestion() {
     const arr = filteredQuestions();
     if (!arr.length) return;
@@ -30,7 +28,6 @@
     show(next.n);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
-
   function cleanPracticalHeader() {
     const title = document.getElementById('title');
     const subtitle = document.getElementById('subtitle');
@@ -42,19 +39,14 @@
       if (subtitle) subtitle.textContent = 'Query-writing questions are separated from theory questions. Write SQL, run it, and check your result.';
     }
   }
-
   function watchPage() {
     const page = document.getElementById('page');
     if (!page) return;
-    const observer = new MutationObserver(() => {
-      addNextButton();
-      cleanPracticalHeader();
-    });
+    const observer = new MutationObserver(() => { addNextButton(); cleanPracticalHeader(); });
     observer.observe(page, { childList: true, subtree: true });
     addNextButton();
     cleanPracticalHeader();
   }
-
   function expandMainLayout() {
     if (document.getElementById('fullWidthLayoutFix')) return;
     const style = document.createElement('style');
@@ -94,45 +86,33 @@
   function applyExtraQuestions() {
     if (window.__extraSqlQuestionsApplied || typeof BANK === 'undefined' || !Array.isArray(BANK) || !BANK.length) return false;
     window.__extraSqlQuestionsApplied = true;
-
     for (const q of extraQuestions) {
       BANK.push({n:q.n,id:'Q'+q.n,title:q.title,difficulty:q.difficulty});
       practicalIds.add(q.n);
     }
-
     const originalMeta = meta;
     const originalSolution = solution;
     const extraById = new Map(extraQuestions.map(q => [q.n,q]));
-
     meta = function(q) {
       const extra = extraById.get(q.n);
       if (extra) return [extra.schema,extra.hint];
       return originalMeta(q);
     };
-
     solution = function(q) {
       const extra = extraById.get(q.n);
       if (extra) return extra.sql;
       return originalSolution(q);
     };
-
     const practical = BANK.filter(q => practicalIds.has(q.n)).sort((a,b) => a.n-b.n);
-    practical.forEach((q,index) => {
-      q.id = 'Q' + String(index + 1).padStart(3,'0');
-    });
-
+    practical.forEach((q,index) => { q.id = 'Q' + (index + 1); });
     if (typeof render === 'function') render();
     return true;
   }
-
   function waitForQuestionBank() {
     if (applyExtraQuestions()) return;
-    const timer = setInterval(() => {
-      if (applyExtraQuestions()) clearInterval(timer);
-    }, 50);
+    const timer = setInterval(() => { if (applyExtraQuestions()) clearInterval(timer); }, 50);
     setTimeout(() => clearInterval(timer), 10000);
   }
-
   document.addEventListener('DOMContentLoaded', () => {
     expandMainLayout();
     watchPage();
