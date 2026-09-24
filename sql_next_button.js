@@ -1,8 +1,8 @@
 (() => {
-  // Navigation/UI helper for both SQL Practical and SQL Theory.
-  // Shows sequential Q1, Q2, Q3..., places the number directly before
-  // the question title, provides a working Next button, and removes the
-  // redundant instruction line.
+  // SQL Theory + Practical navigation/UI helper.
+  // Practical: Q1, Q2, Q3... inside the question heading.
+  // Theory: keep the existing Q numbering, remove duplicate prefixes/badges,
+  // and place Next at the bottom-right of the Simple Answer card.
 
   function getVisibleQuestions() {
     if (typeof BANK === 'undefined' || typeof practicalIds === 'undefined') return [];
@@ -41,6 +41,17 @@
     }) || null;
   }
 
+  function getSimpleAnswerCard() {
+    const page = document.getElementById('page');
+    if (!page) return null;
+
+    return Array.from(page.children).find(card => {
+      if (!card.classList?.contains('card')) return false;
+      const heading = card.querySelector('h3');
+      return heading && heading.textContent.toLowerCase().includes('simple answer');
+    }) || null;
+  }
+
   function addQuestionNumber() {
     const card = getQuestionCard();
     if (!card) return;
@@ -51,38 +62,41 @@
     const questionNumber = getQuestionNumber();
     if (!questionNumber) return;
 
-    // Remove any old standalone number badge created by earlier versions.
+    // Remove old standalone number badges from earlier versions.
     card.querySelectorAll('.sql-question-number').forEach(el => {
       if (el.parentElement !== question) el.remove();
     });
+
+    // Theory is already renumbered by theory_questions_patch.js.
+    // Never add another Q number when one is already present.
+    const existingPrefix = question.textContent.match(/^\s*Q\d+\s*[·.-]\s*/);
+    if (existingPrefix) return;
 
     let badge = question.querySelector('.sql-question-number');
     if (!badge) {
       badge = document.createElement('span');
       badge.className = 'sql-question-number';
-      badge.style.cssText = [
-        'font-weight:700',
-        'white-space:nowrap'
-      ].join(';');
+      badge.style.cssText = 'font-weight:700;white-space:nowrap;';
       question.insertBefore(badge, question.firstChild);
     }
 
-    const numberText = `Q${questionNumber} · `;
-    if (badge.textContent !== numberText) {
-      badge.textContent = numberText;
-    }
+    badge.textContent = `Q${questionNumber} · `;
+    if (question.firstChild !== badge) question.insertBefore(badge, question.firstChild);
+  }
 
-    // Keep Q number as the first content inside the question heading.
-    if (question.firstChild !== badge) {
-      question.insertBefore(badge, question.firstChild);
-    }
+  function removeTheoryBadges() {
+    if (typeof mode === 'undefined' || mode !== 'theory') return;
+    const card = getQuestionCard();
+    if (!card) return;
+
+    // Remove only the Theory and difficulty badges from the question card.
+    card.querySelectorAll('.badge').forEach(el => el.remove());
   }
 
   function removeInstructionLine() {
     const card = getQuestionCard();
     if (!card) return;
 
-    // Remove only the redundant instruction text, without removing other meta text.
     Array.from(card.querySelectorAll('.meta, p, div, span')).forEach(el => {
       const text = (el.textContent || '').trim();
       if (text === 'Write your query before looking at the solution.' ||
@@ -109,21 +123,19 @@
       const clear = buttons.querySelector('.clear');
       if (!clear) return;
 
-      const button = createNextButton();
-      clear.insertAdjacentElement('afterend', button);
+      clear.insertAdjacentElement('afterend', createNextButton());
       return;
     }
 
-    // Theory has no editor button row, so place Next at the bottom of the
-    // first question card without changing the existing answer/tip cards.
-    const card = getQuestionCard();
-    if (!card) return;
+    // SQL Theory: put Next in the Simple Answer card, bottom-right.
+    const answerCard = getSimpleAnswerCard();
+    if (!answerCard) return;
 
     const buttonWrap = document.createElement('div');
     buttonWrap.className = 'buttons theory-next-wrap';
-    buttonWrap.style.cssText = 'justify-content:flex-end;margin-top:18px;';
+    buttonWrap.style.cssText = 'display:flex;justify-content:flex-end;margin-top:18px;';
     buttonWrap.appendChild(createNextButton());
-    card.appendChild(buttonWrap);
+    answerCard.appendChild(buttonWrap);
   }
 
   function createNextButton() {
@@ -150,9 +162,9 @@
     show(next.n);
     window.scrollTo(0, 0);
 
-    // show() rebuilds #page, so wait for the new DOM before adding controls.
     requestAnimationFrame(() => {
       addQuestionNumber();
+      removeTheoryBadges();
       removeInstructionLine();
       addNextButton();
     });
@@ -168,6 +180,7 @@
     }
 
     addQuestionNumber();
+    removeTheoryBadges();
     removeInstructionLine();
     addNextButton();
   }
