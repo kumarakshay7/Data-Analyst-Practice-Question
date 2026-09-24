@@ -43,14 +43,40 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  function cleanPracticalHeader() {
+    const title = document.getElementById('title');
+    const subtitle = document.getElementById('subtitle');
+    const header = document.querySelector('.header');
+
+    if (!title || !subtitle || !header) return;
+
+    if (typeof mode !== 'undefined' && mode === 'practice') {
+      // The question is already displayed inside the question card.
+      // Remove the duplicate question heading above it, matching the Python layout.
+      title.style.display = 'none';
+      subtitle.style.display = 'none';
+      header.style.marginBottom = '0';
+      header.style.minHeight = '0';
+    } else {
+      title.style.display = '';
+      subtitle.style.display = '';
+      header.style.marginBottom = '';
+      header.style.minHeight = '';
+    }
+  }
+
   function watchPage() {
     const page = document.getElementById('page');
     if (!page) return;
 
-    const observer = new MutationObserver(() => addNextButton());
+    const observer = new MutationObserver(() => {
+      addNextButton();
+      cleanPracticalHeader();
+    });
     observer.observe(page, { childList: true, subtree: true });
 
     addNextButton();
+    cleanPracticalHeader();
   }
 
   function expandMainLayout() {
