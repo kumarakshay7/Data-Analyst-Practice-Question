@@ -1,7 +1,6 @@
 (() => {
   // Lightweight SQL Practical UI helper.
-  // This script intentionally does not observe DOM mutations and does not
-  // attach extra handlers to the Theory/Python navigation.
+  // Adds the Next button and keeps the practical question number visible.
 
   function getPracticalQuestions() {
     if (typeof BANK === 'undefined' || typeof practicalIds === 'undefined') return [];
@@ -16,6 +15,56 @@
       (!s || q.title.toLowerCase().includes(s) || q.id.toLowerCase().includes(s)) &&
       (d === 'All' || q.difficulty === d)
     ).sort((a, b) => a.n - b.n);
+  }
+
+  function getQuestionNumber() {
+    if (typeof current === 'undefined' || !current) return null;
+
+    const questions = getPracticalQuestions();
+    const index = questions.findIndex(q => q.n === current.n);
+
+    // Sequential number for Practical SQL: Q1, Q2, Q3 ...
+    return index >= 0 ? index + 1 : null;
+  }
+
+  function addQuestionNumber() {
+    if (typeof mode !== 'undefined' && mode !== 'practice') return;
+
+    const page = document.getElementById('page');
+    if (!page) return;
+
+    const questionNumber = getQuestionNumber();
+    if (!questionNumber) return;
+
+    // The first visible question card contains the Practical SQL badge/title.
+    // Add the number to the top-right without changing the question text.
+    const cards = Array.from(page.children).filter(el => el.classList?.contains('card'));
+    const card = cards.find(el => el.querySelector('.question')) || cards[0];
+    if (!card) return;
+
+    card.style.position = 'relative';
+
+    let badge = card.querySelector('.sql-question-number');
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.className = 'sql-question-number';
+      badge.style.cssText = [
+        'position:absolute',
+        'top:18px',
+        'right:20px',
+        'background:#e9eef6',
+        'color:#172033',
+        'border:1px solid #d5dce7',
+        'border-radius:8px',
+        'padding:7px 11px',
+        'font-size:12px',
+        'font-weight:700',
+        'line-height:1'
+      ].join(';');
+      card.appendChild(badge);
+    }
+
+    badge.textContent = `Q${questionNumber}`;
   }
 
   function addNextButton() {
@@ -51,7 +100,10 @@
 
     show(next.n);
     window.scrollTo(0, 0);
-    setTimeout(addNextButton, 0);
+    setTimeout(() => {
+      addQuestionNumber();
+      addNextButton();
+    }, 0);
   }
 
   function updatePracticalLayout() {
@@ -60,6 +112,7 @@
     const header = document.querySelector('.header');
     if (header) header.style.display = 'none';
 
+    addQuestionNumber();
     addNextButton();
   }
 
