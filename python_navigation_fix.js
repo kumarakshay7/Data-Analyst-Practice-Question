@@ -1,6 +1,9 @@
 // Consolidated Python Theory + Practical UI/navigation fix.
-// This file intentionally owns the Next button and display formatting so
-// multiple older UI patches cannot attach competing click handlers.
+// Important: the original question renderer identifies the active sidebar
+// item by its old PY-Txxx/PY-Pxxx text. Our display formatter intentionally
+// replaces that text with Q1.🧑‍💼..., so navigation must NOT depend on the
+// original .active class. This file tracks the current question by its
+// visible question text instead.
 (() => {
   const SELECTORS = {
     nav: '#nav',
@@ -28,30 +31,51 @@
     return style.display !== 'none' && style.visibility !== 'hidden' && !button.disabled;
   });
 
+  // The original renderer's .active class cannot be trusted because the
+  // question labels are intentionally changed from PY-Txxx/PY-Pxxx to Qx.
+  // Find the current question from the question displayed in #page instead.
   const currentIndex = () => {
     const questions = visibleQuestions();
-    const active = questions.findIndex((button) => button.classList.contains('active'));
-    return active >= 0 ? active : 0;
+    if (!questions.length) return -1;
+
+    const displayed = document.querySelector('#page .question');
+    const displayedText = clean(displayed?.textContent || '');
+
+    if (displayedText) {
+      const match = questions.findIndex((button) => clean(button.textContent) === displayedText);
+      if (match >= 0) return match;
+    }
+
+    // Fallback for a newly rendered page before .question exists.
+    const title = clean(document.getElementById('title')?.textContent || '');
+    if (title) {
+      const match = questions.findIndex((button) => clean(button.textContent) === title);
+      if (match >= 0) return match;
+    }
+
+    return 0;
   };
 
   function formatQuestionDisplay() {
     const questions = visibleQuestions();
+    const index = currentIndex();
 
-    questions.forEach((button, index) => {
+    questions.forEach((button, i) => {
       const text = clean(button.textContent);
-      if (text) button.textContent = `Q${index + 1}.🧑‍💼${text}`;
+      if (text) button.textContent = `Q${i + 1}.🧑‍💼${text}`;
+      button.classList.toggle('active', i === index);
     });
 
     const question = document.querySelector(`${SELECTORS.page} .question`);
     if (question) {
       const text = clean(question.textContent);
-      if (text) question.textContent = `Q${currentIndex() + 1}.🧑‍💼${text}`;
+      if (text) question.textContent = `Q${index + 1}.🧑‍💼${text}`;
     }
 
     const title = document.getElementById('title');
-    if (title && questions.length) {
-      const text = clean(questions[currentIndex()]?.textContent);
-      if (text) title.textContent = `Q${currentIndex() + 1}.🧑‍💼${text}`;
+    if (title && questions[index]) {
+      const text = clean(questions[index].textContent);
+      if (text) title.textContent = `Q${index + 1}.🧑‍💼${text}`;
     }
   }
 
@@ -89,7 +113,6 @@
       display: 'inline-block'
     });
 
-    // Keep the button in the same area as the interview answer.
     const card = getInterviewCard();
     if (card) {
       let wrap = card.querySelector('[data-python-next-wrap]');
@@ -115,11 +138,13 @@
     if (!questions.length) return;
 
     const index = currentIndex();
-    const next = questions[(index + 1) % questions.length];
+    const nextIndex = index < 0 ? 0 : (index + 1) % questions.length;
+    const next = questions[nextIndex];
     if (!next) return;
 
-    // Use the application's original sidebar navigation. We do not attach
-    // handlers to the sidebar buttons, so there is no handler conflict.
+    // The original renderer already has the correct question-loading logic.
+    // Trigger that existing qbtn handler, but determine the next item from
+    // the visible question text rather than its broken .active state.
     next.click();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -128,7 +153,7 @@
     setTimeout(apply, 250);
   }
 
-  // One delegated handler for one Next button. It survives page re-renders.
+  // One delegated handler for the Next button.
   document.addEventListener('click', (event) => {
     const button = event.target.closest?.('[data-python-next="1"]');
     if (!button) return;
