@@ -69,12 +69,134 @@ jobs:
               s = s.replace('</body>', tag + '</body>')
               p.write_text(s, encoding='utf-8')
 
+      - name: Add SQL Next button support
+        shell: python
+        run: |
+          from pathlib import Path
+
+          js = r'''(() => {
+            function filteredQuestions(){
+              const search=document.getElementById('search');
+              const difficulty=document.getElementById('difficulty');
+              const s=(search?.value||'').toLowerCase().trim();
+              const d=difficulty?.value||'All';
+              return BANK.filter(q =>
+                (mode==='practice' ? practicalIds.has(q.n) : !practicalIds.has(q.n)) &&
+                (!s || q.title.toLowerCase().includes(s) || q.id.toLowerCase().includes(s)) &&
+                (d==='All' || q.difficulty===d)
+              );
+            }
+
+            function nextQuestion(){
+              const arr=filteredQuestions();
+              if(!arr.length) return;
+              const index=arr.findIndex(q => current && q.n===current.n);
+              const next=arr[(index+1+arr.length)%arr.length];
+              show(next.n);
+              window.scrollTo({top:0,behavior:'smooth'});
+              setTimeout(addNextButton,0);
+            }
+
+            function addNextButton(){
+              const clear=document.querySelector('#page .buttons .clear');
+              if(!clear || document.getElementById('nextQuestionBtn')) return;
+              const button=document.createElement('button');
+              button.id='nextQuestionBtn';
+              button.type='button';
+              button.className='btn clear';
+              button.textContent='Next →';
+              button.title='Open the next question';
+              button.onclick=nextQuestion;
+              clear.insertAdjacentElement('afterend',button);
+            }
+
+            document.addEventListener('click',event=>{
+              if(event.target.closest('.qbtn,#practiceTab,#theoryTab')) setTimeout(addNextButton,0);
+            });
+            document.getElementById('search')?.addEventListener('input',()=>setTimeout(addNextButton,0));
+            document.getElementById('difficulty')?.addEventListener('change',()=>setTimeout(addNextButton,0));
+            setTimeout(addNextButton,0);
+            setTimeout(addNextButton,500);
+          })();
+          '''
+
+          Path('sql_next_button.js').write_text(js, encoding='utf-8')
+          p = Path('practice.html')
+          s = p.read_text(encoding='utf-8')
+          tag = '<script src="sql_next_button.js"></script>'
+          if tag not in s:
+              if '</body>' not in s:
+                  raise SystemExit('practice.html has no closing body tag')
+              s = s.replace('</body>', tag + '</body>')
+              p.write_text(s, encoding='utf-8')
+
+      - name: Add Python Next button support
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('python_practical_ui_patch.js')
+          content = r'''// Python practical UI patch
+// Sample rendering is handled by python_samples_force_fix.js.
+// This file intentionally avoids a MutationObserver to keep question navigation responsive.
+(() => {
+  const page = document.getElementById('page');
+  if (page) page.setAttribute('data-python-ui-patch', 'safe-v3');
+
+  function filteredQuestions(){
+    const search=document.getElementById('search');
+    const difficulty=document.getElementById('difficulty');
+    const s=(search?.value||'').toLowerCase().trim();
+    const d=difficulty?.value||'All';
+    const list=window.PYTHON_PRACTICAL?.list||[];
+    return list.filter(q =>
+      (!s || q[0].toLowerCase().includes(s) || q[1].toLowerCase().includes(s)) &&
+      (d==='All' || q[2]===d)
+    );
+  }
+
+  function addNextButton(){
+    const clear=document.getElementById('clearBtn');
+    if(!clear || document.getElementById('nextPythonBtn')) return;
+    const button=document.createElement('button');
+    button.id='nextPythonBtn';
+    button.type='button';
+    button.className='btn clear';
+    button.textContent='Next →';
+    button.title='Open the next question';
+    button.onclick=nextQuestion;
+    clear.insertAdjacentElement('afterend',button);
+  }
+
+  function nextQuestion(){
+    const arr=filteredQuestions();
+    if(!arr.length) return;
+    const active=document.querySelector('#nav .qbtn.active');
+    const currentId=active ? active.textContent.split(' · ')[0].trim() : '';
+    const index=arr.findIndex(q=>q[0]===currentId);
+    const next=arr[(index+1+arr.length)%arr.length];
+    const nextButton=[...document.querySelectorAll('#nav .qbtn')].find(b=>b.textContent.startsWith(next[0]+' · '));
+    if(nextButton) nextButton.click();
+    window.scrollTo({top:0,behavior:'smooth'});
+    setTimeout(addNextButton,0);
+  }
+
+  document.addEventListener('click',event=>{
+    if(event.target.closest('.qbtn,#pythonPracticeTab,#pythonTheoryTab')) setTimeout(addNextButton,0);
+  });
+  document.getElementById('search')?.addEventListener('input',()=>setTimeout(addNextButton,0));
+  document.getElementById('difficulty')?.addEventListener('change',()=>setTimeout(addNextButton,0));
+  setTimeout(addNextButton,0);
+  setTimeout(addNextButton,500);
+})();
+'''
+          p.write_text(content, encoding='utf-8')
+
       - name: Commit optimized files
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add theory_details.js theory_extra.js python_practice.html
+          git add theory_details.js theory_extra.js python_practice.html practice.html sql_next_button.js python_practical_ui_patch.js
           git diff --cached --quiet && exit 0
           git commit -m "Apply theory performance optimization"
           git push
