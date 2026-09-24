@@ -1,27 +1,145 @@
 (() => {
-  function page(){ return document.getElementById('page'); }
-  function buttons(){ return [...document.querySelectorAll('#nav .qbtn')].filter(b=>getComputedStyle(b).display!=='none'&&!b.disabled); }
-  function clean(t){ return String(t||'').replace(/^PY-[TP]\d+\s*[·•:\-]\s*/i,'').replace(/^Q\s*\d+\s*[·•:\-]\s*/i,'').replace(/^🧑‍💼\s*/u,'').replace(/^🐍\s*/u,'').trim(); }
-  function formatNav(){ buttons().forEach((b,i)=>{ const t=clean(b.textContent); const w=`Q${i+1} · ${t}`; if(t&&b.textContent!==w)b.textContent=w; }); }
-  function formatTitle(){ const title=document.getElementById('title'); if(!title)return; const bs=buttons(); const active=bs.findIndex(b=>b.classList.contains('active')); const n=active>=0?active+1:1; const t=clean(bs[n-1]?.textContent||title.textContent); if(t&&!/^Python Theory Questions$/i.test(t)) title.textContent=`Q${n} · 🧑‍💼 ${t}`; }
-  function removeDuplicate(){ const root=page(); if(!root)return; [...root.children].filter(x=>x.classList?.contains('card')&&x.querySelector('.question')).forEach(x=>x.remove()); }
-  function interviewCard(){ const root=page(); if(!root)return null; return [...root.children].find(c=>c.classList?.contains('card')&&[...c.querySelectorAll('h3')].some(h=>/interview answer/i.test(h.textContent)))||null; }
-  function styleNext(b){ if(!b)return; b.id='pythonTheoryNextBtn'; b.type='button'; b.textContent='Next →'; Object.entries({background:'#7c3aed',color:'#fff',border:'0',borderRadius:'8px',padding:'10px 16px',fontWeight:'700',cursor:'pointer'}).forEach(([k,v])=>b.style.setProperty(k,v,'important')); b.onclick=nextQuestion; }
-  function addNext(){ const card=interviewCard(); if(!card)return; let b=card.querySelector('#pythonTheoryNextBtn'); if(!b){ const wrap=document.createElement('div'); wrap.className='python-theory-next-wrap'; wrap.style.cssText='display:flex;justify-content:flex-end;margin-top:16px;width:100%'; b=document.createElement('button'); wrap.appendChild(b); card.appendChild(wrap); } styleNext(b); }
-  function nextQuestion(){
-    const bs=buttons(); if(!bs.length)return;
-    const title=document.getElementById('title');
-    const currentText=clean(title?.textContent||'');
-    let i=bs.findIndex(b=>clean(b.textContent)===currentText);
-    if(i<0)i=bs.findIndex(b=>b.classList.contains('active'));
-    if(i<0)i=0;
-    const next=bs[(i+1)%bs.length];
-    if(!next)return;
-    next.click();
-    window.scrollTo({top:0,behavior:'smooth'});
-    setTimeout(apply,0); setTimeout(apply,80);
+  const state = { index: -1 };
+  const page = () => document.getElementById('page');
+
+  function buttons() {
+    return [...document.querySelectorAll('#nav .qbtn')].filter(b =>
+      getComputedStyle(b).display !== 'none' && !b.disabled
+    );
   }
-  function apply(){ removeDuplicate(); formatNav(); formatTitle(); addNext(); }
-  function boot(){ const timer=setInterval(()=>{ if(page()&&document.querySelector('#nav .qbtn')){clearInterval(timer); const root=page(); if(!root.dataset.pythonTheoryPatchAttached){root.dataset.pythonTheoryPatchAttached='true'; let scheduled=false; new MutationObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;apply();});}).observe(root,{childList:true,subtree:true});} apply(); } },100); setTimeout(()=>clearInterval(timer),15000); }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+
+  function clean(text) {
+    return String(text || '')
+      .replace(/^PY-[TP]\d+\s*[·•:\-]\s*/i, '')
+      .replace(/^Q\s*\d+\s*[·•:\-]\s*/i, '')
+      .replace(/^🧑‍💼\s*/u, '')
+      .replace(/^🐍\s*/u, '')
+      .trim();
+  }
+
+  function syncIndex() {
+    const bs = buttons();
+    if (!bs.length) return -1;
+    const active = bs.findIndex(b => b.classList.contains('active'));
+    if (active >= 0) state.index = active;
+    if (state.index < 0 || state.index >= bs.length) state.index = 0;
+    return state.index;
+  }
+
+  function formatNav() {
+    buttons().forEach((b, i) => {
+      const text = clean(b.textContent);
+      if (text) b.textContent = `Q${i + 1} · 🧑‍💼 ${text}`;
+    });
+  }
+
+  function removeDuplicateQuestionCard() {
+    const root = page();
+    if (!root) return;
+    const cards = [...root.children].filter(c =>
+      c.classList?.contains('card') && c.querySelector('.question')
+    );
+    cards.forEach(c => c.remove());
+  }
+
+  function interviewCard() {
+    const root = page();
+    if (!root) return null;
+    return [...root.children].find(c =>
+      c.classList?.contains('card') &&
+      [...c.querySelectorAll('h3')].some(h => /interview answer/i.test(h.textContent))
+    ) || null;
+  }
+
+  function styleNext(button) {
+    if (!button) return;
+    button.id = 'pythonTheoryNextBtn';
+    button.type = 'button';
+    button.textContent = 'Next →';
+    Object.entries({
+      background: '#7c3aed', color: '#fff', border: '0', borderRadius: '8px',
+      padding: '10px 16px', fontWeight: '700', cursor: 'pointer'
+    }).forEach(([k, v]) => button.style.setProperty(k, v, 'important'));
+    button.onclick = nextQuestion;
+  }
+
+  function addNext() {
+    const card = interviewCard();
+    if (!card) return;
+    let button = card.querySelector('#pythonTheoryNextBtn');
+    if (!button) {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;justify-content:flex-end;margin-top:16px;width:100%';
+      button = document.createElement('button');
+      wrap.appendChild(button);
+      card.appendChild(wrap);
+    }
+    styleNext(button);
+  }
+
+  function nextQuestion() {
+    const bs = buttons();
+    if (!bs.length) return;
+
+    // Keep our own position. Do not depend on the app's active CSS class.
+    syncIndex();
+    state.index = (state.index + 1) % bs.length;
+    const next = bs[state.index];
+    if (!next) return;
+
+    next.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function handleQuestionClick(event) {
+    const button = event.target.closest('#nav .qbtn');
+    if (!button) return;
+    const bs = buttons();
+    const i = bs.indexOf(button);
+    if (i >= 0) state.index = i;
+    setTimeout(apply, 0);
+  }
+
+  function apply() {
+    syncIndex();
+    formatNav();
+    removeDuplicateQuestionCard();
+    addNext();
+  }
+
+  document.addEventListener('click', handleQuestionClick, true);
+  document.addEventListener('click', event => {
+    if (event.target.closest('#pythonTheoryTab')) {
+      state.index = 0;
+      setTimeout(apply, 0);
+      setTimeout(apply, 100);
+    }
+  });
+
+  document.getElementById('search')?.addEventListener('input', () => {
+    state.index = 0;
+    setTimeout(apply, 0);
+  });
+  document.getElementById('difficulty')?.addEventListener('change', () => {
+    state.index = 0;
+    setTimeout(apply, 0);
+  });
+
+  function boot() {
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries++;
+      if (page() && document.querySelector('#nav .qbtn')) {
+        clearInterval(timer);
+        apply();
+      }
+      if (tries > 150) clearInterval(timer);
+    }, 100);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
+  } else {
+    boot();
+  }
 })();
