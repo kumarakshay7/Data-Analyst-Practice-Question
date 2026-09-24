@@ -1,10 +1,58 @@
 (() => {
   // Python Theory UI patch:
   // 1) Remove the duplicate question card rendered above "Simple explanation".
-  // 2) Add a working Next button to the bottom-right of the Interview answer card.
+  // 2) Display sequential Q1, Q2, Q3... instead of PY-T001, PY-T002...
+  // 3) Keep the Next button in the bottom-right of the Interview answer card.
+  // 4) Give the Next button a teal/green color matching the SQL Run button.
 
   function page() {
     return document.getElementById('page');
+  }
+
+  function getVisibleQuestionButtons() {
+    return Array.from(document.querySelectorAll('#nav .qbtn')).filter(btn => {
+      const style = window.getComputedStyle(btn);
+      return style.display !== 'none' && !btn.disabled;
+    });
+  }
+
+  function getCurrentQuestionNumber() {
+    const buttons = getVisibleQuestionButtons();
+    const activeIndex = buttons.findIndex(btn => btn.classList.contains('active'));
+    return activeIndex >= 0 ? activeIndex + 1 : 1;
+  }
+
+  function cleanQuestionText(text) {
+    return String(text || '')
+      .replace(/^PY-T\d+\s*[·•:-]\s*/i, '')
+      .replace(/^Q\d+\s*[·•:-]\s*/i, '')
+      .trim();
+  }
+
+  function formatQuestionNumbers() {
+    const buttons = getVisibleQuestionButtons();
+
+    buttons.forEach((btn, index) => {
+      const text = cleanQuestionText(btn.textContent);
+      if (text) btn.textContent = `Q${index + 1} · ${text}`;
+    });
+
+    const number = getCurrentQuestionNumber();
+    const title = document.getElementById('title');
+    if (title) {
+      const text = cleanQuestionText(title.textContent);
+      if (text && !/^Python Theory Questions$/i.test(text)) {
+        title.textContent = `Q${number} · ${text}`;
+      }
+    }
+
+    const root = page();
+    if (root) {
+      root.querySelectorAll('.question').forEach(el => {
+        const text = cleanQuestionText(el.textContent);
+        if (text) el.textContent = `Q${number} · ${text}`;
+      });
+    }
   }
 
   function removeDuplicateQuestionCard() {
@@ -28,11 +76,31 @@
     ) || null;
   }
 
-  function getVisibleQuestionButtons() {
-    return Array.from(document.querySelectorAll('#nav .qbtn')).filter(btn => {
-      const style = window.getComputedStyle(btn);
-      return style.display !== 'none' && !btn.disabled;
-    });
+  function injectButtonStyle() {
+    if (document.getElementById('pythonTheoryNextStyle')) return;
+
+    const style = document.createElement('style');
+    style.id = 'pythonTheoryNextStyle';
+    style.textContent = `
+      #pythonTheoryNextBtn {
+        background: #0f8b78 !important;
+        color: #ffffff !important;
+        border: 0 !important;
+        border-radius: 8px !important;
+        padding: 10px 16px !important;
+        font-weight: 700 !important;
+        cursor: pointer !important;
+        transition: background .15s ease, transform .15s ease !important;
+      }
+      #pythonTheoryNextBtn:hover {
+        background: #0b6f61 !important;
+        color: #ffffff !important;
+      }
+      #pythonTheoryNextBtn:active {
+        transform: translateY(1px);
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   function nextQuestion() {
@@ -50,28 +118,33 @@
 
   function addNextButton() {
     const card = getInterviewCard();
-    if (!card || card.querySelector('#pythonTheoryNextBtn')) return;
+    if (!card) return;
 
-    card.style.position = 'relative';
+    let button = card.querySelector('#pythonTheoryNextBtn');
+    if (!button) {
+      card.style.position = 'relative';
 
-    const wrap = document.createElement('div');
-    wrap.className = 'python-theory-next-wrap';
-    wrap.style.cssText = 'display:flex;justify-content:flex-end;margin-top:16px;';
+      const wrap = document.createElement('div');
+      wrap.className = 'python-theory-next-wrap';
+      wrap.style.cssText = 'display:flex;justify-content:flex-end;margin-top:16px;';
 
-    const button = document.createElement('button');
-    button.id = 'pythonTheoryNextBtn';
-    button.type = 'button';
-    button.className = 'btn clear';
-    button.textContent = 'Next →';
-    button.title = 'Open the next Python Theory question';
-    button.addEventListener('click', nextQuestion);
+      button = document.createElement('button');
+      button.id = 'pythonTheoryNextBtn';
+      button.type = 'button';
+      button.textContent = 'Next →';
+      button.title = 'Open the next Python Theory question';
+      button.addEventListener('click', nextQuestion);
 
-    wrap.appendChild(button);
-    card.appendChild(wrap);
+      wrap.appendChild(button);
+      card.appendChild(wrap);
+    }
+
+    injectButtonStyle();
   }
 
   function apply() {
     removeDuplicateQuestionCard();
+    formatQuestionNumbers();
     addNextButton();
   }
 
