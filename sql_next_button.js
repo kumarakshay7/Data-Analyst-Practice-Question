@@ -1,6 +1,7 @@
 (() => {
   // Navigation/UI helper for both SQL Practical and SQL Theory.
-  // Shows sequential Q1, Q2, Q3... and provides a working Next button.
+  // Shows sequential Q1, Q2, Q3..., puts the Q number before the question title,
+  // provides a working Next button, and removes the redundant instruction line.
 
   function getVisibleQuestions() {
     if (typeof BANK === 'undefined' || typeof practicalIds === 'undefined') return [];
@@ -43,33 +44,52 @@
     const card = getQuestionCard();
     if (!card) return;
 
+    const question = card.querySelector('.question');
+    if (!question) return;
+
     const questionNumber = getQuestionNumber();
     if (!questionNumber) return;
 
-    card.style.position = 'relative';
-
     let badge = card.querySelector('.sql-question-number');
     if (!badge) {
-      badge = document.createElement('div');
+      badge = document.createElement('span');
       badge.className = 'sql-question-number';
       badge.style.cssText = [
-        'position:absolute',
-        'top:18px',
-        'right:20px',
+        'display:inline-block',
+        'vertical-align:middle',
+        'margin-right:10px',
         'background:#e9eef6',
         'color:#172033',
         'border:1px solid #d5dce7',
         'border-radius:8px',
-        'padding:7px 11px',
-        'font-size:12px',
+        'padding:6px 10px',
+        'font-size:13px',
         'font-weight:700',
         'line-height:1',
-        'z-index:2'
+        'white-space:nowrap'
       ].join(';');
-      card.appendChild(badge);
     }
 
     badge.textContent = `Q${questionNumber}`;
+
+    // Display the question number BEFORE the question title.
+    if (badge.parentElement !== question.parentElement || badge.nextElementSibling !== question) {
+      question.parentElement.insertBefore(badge, question);
+    }
+  }
+
+  function removeInstructionLine() {
+    const card = getQuestionCard();
+    if (!card) return;
+
+    // Remove only the redundant instruction text, without removing other meta text.
+    Array.from(card.querySelectorAll('.meta, p, div, span')).forEach(el => {
+      const text = (el.textContent || '').trim();
+      if (text === 'Write your query before looking at the solution.' ||
+          text === 'Write your SQL before looking at the solution.') {
+        el.remove();
+      }
+    });
   }
 
   function addNextButton() {
@@ -133,6 +153,7 @@
     // show() rebuilds #page, so wait for the new DOM before adding controls.
     requestAnimationFrame(() => {
       addQuestionNumber();
+      removeInstructionLine();
       addNextButton();
     });
   }
@@ -147,6 +168,7 @@
     }
 
     addQuestionNumber();
+    removeInstructionLine();
     addNextButton();
   }
 
