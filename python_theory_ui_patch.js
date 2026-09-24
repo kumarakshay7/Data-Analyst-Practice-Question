@@ -1,14 +1,12 @@
 (() => {
   // Python Theory UI patch
   // - Remove duplicate question card.
-  // - Show sequential Q1, Q2, Q3... in the navigation and top question title.
+  // - Show sequential Q1, Q2, Q3... in navigation and top question title.
   // - Use the requested interviewer icon in the top title.
   // - Keep Next in the bottom-right of Interview answer.
-  // - Force the Next button to use the teal/green SQL-style color.
+  // - Use the same distinct purple Next button as Python Practical.
 
-  function page() {
-    return document.getElementById('page');
-  }
+  function page() { return document.getElementById('page'); }
 
   function visibleQuestionButtons() {
     return Array.from(document.querySelectorAll('#nav .qbtn')).filter(btn => {
@@ -56,7 +54,6 @@
   function removeDuplicateQuestionCard() {
     const root = page();
     if (!root) return;
-
     const cards = Array.from(root.children).filter(el => el.classList?.contains('card'));
     cards.filter(card => card.querySelector('.question')).forEach(card => card.remove());
   }
@@ -64,7 +61,6 @@
   function getInterviewCard() {
     const root = page();
     if (!root) return null;
-
     return Array.from(root.children).find(card =>
       card.classList?.contains('card') &&
       Array.from(card.querySelectorAll('h3')).some(h =>
@@ -75,13 +71,12 @@
 
   function styleNextButton(button) {
     if (!button) return;
-
     button.id = 'pythonTheoryNextBtn';
     button.textContent = 'Next →';
     button.type = 'button';
 
     const styles = {
-      background: '#0f8b78',
+      background: '#7c3aed',
       color: '#ffffff',
       border: '0',
       borderRadius: '8px',
@@ -90,14 +85,13 @@
       cursor: 'pointer',
       transition: 'background .15s ease, transform .15s ease'
     };
+    Object.entries(styles).forEach(([key, value]) =>
+      button.style.setProperty(key, value, 'important')
+    );
 
-    Object.entries(styles).forEach(([key, value]) => {
-      button.style.setProperty(key, value, 'important');
-    });
-
-    button.onmouseenter = () => button.style.setProperty('background', '#0b6f61', 'important');
-    button.onmouseleave = () => button.style.setProperty('background', '#0f8b78', 'important');
-    button.onmousedown = () => button.style.setProperty('transform', 'translateY(1px)', 'important');
+    button.onmouseenter = () => button.style.setProperty('background', '#6d28d9', 'important');
+    button.onmouseleave = () => button.style.setProperty('background', '#7c3aed', 'important');
+    button.onmousedown = () => button.style.setProperty('transform', 'translateY(1px', 'important');
     button.onmouseup = () => button.style.setProperty('transform', 'translateY(0)', 'important');
     button.onclick = nextQuestion;
   }
@@ -109,11 +103,10 @@
       style.id = 'pythonTheoryNextStyle';
       document.head.appendChild(style);
     }
-
     style.textContent = `
       #pythonTheoryNextBtn,
       .python-theory-next-wrap #pythonTheoryNextBtn {
-        background: #0f8b78 !important;
+        background: #7c3aed !important;
         color: #fff !important;
         border: 0 !important;
         border-radius: 8px !important;
@@ -123,7 +116,7 @@
       }
       #pythonTheoryNextBtn:hover,
       .python-theory-next-wrap #pythonTheoryNextBtn:hover {
-        background: #0b6f61 !important;
+        background: #6d28d9 !important;
         color: #fff !important;
       }
     `;
@@ -132,7 +125,6 @@
   function nextQuestion() {
     const buttons = visibleQuestionButtons();
     if (!buttons.length) return;
-
     const activeIndex = buttons.findIndex(btn => btn.classList.contains('active'));
     const nextIndex = activeIndex >= 0 ? (activeIndex + 1) % buttons.length : 0;
     buttons[nextIndex].click();
@@ -142,12 +134,9 @@
   function addNextButton() {
     const card = getInterviewCard();
     if (!card) return;
-
     injectStyle();
 
     let button = card.querySelector('#pythonTheoryNextBtn');
-
-    // If another script already created a Next button, reuse it and force the style.
     if (!button) {
       button = Array.from(card.querySelectorAll('button')).find(btn =>
         /^Next\s*→?$/i.test(btn.textContent.trim())
@@ -158,7 +147,6 @@
       const wrap = document.createElement('div');
       wrap.className = 'python-theory-next-wrap';
       wrap.style.cssText = 'display:flex;justify-content:flex-end;margin-top:16px;width:100%;';
-
       button = document.createElement('button');
       wrap.appendChild(button);
       card.appendChild(wrap);
@@ -169,7 +157,6 @@
       button.parentNode.insertBefore(wrap, button);
       wrap.appendChild(button);
     }
-
     styleNextButton(button);
   }
 
@@ -183,10 +170,8 @@
   function startObserver() {
     const root = page();
     if (!root || root.dataset.pythonTheoryPatchAttached) return;
-
     root.dataset.pythonTheoryPatchAttached = 'true';
     let scheduled = false;
-
     const observer = new MutationObserver(() => {
       if (scheduled) return;
       scheduled = true;
@@ -195,7 +180,6 @@
         apply();
       });
     });
-
     observer.observe(root, { childList: true, subtree: true });
     apply();
   }
@@ -207,7 +191,6 @@
         startObserver();
       }
     }, 100);
-
     setTimeout(() => clearInterval(timer), 15000);
   }
 
