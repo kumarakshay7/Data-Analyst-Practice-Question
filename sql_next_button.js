@@ -39,13 +39,40 @@
       if (subtitle) subtitle.textContent = 'Query-writing questions are separated from theory questions. Write SQL, run it, and check your result.';
     }
   }
+  function removePracticalDuplicateCard() {
+    if (typeof mode !== 'undefined' && mode !== 'practice') return;
+    const page = document.getElementById('page');
+    if (!page) return;
+
+    const cards = page.querySelectorAll(':scope > .card');
+    if (!cards.length) return;
+
+    // The first card in Practical SQL is the duplicate question/details card.
+    // Keep the main Q-number header at the top and remove only this card.
+    const firstCard = cards[0];
+    if (firstCard && firstCard.querySelector('.question') && firstCard.querySelector('.meta')) {
+      firstCard.classList.add('sql-practice-duplicate-card');
+    }
+
+    if (!document.getElementById('sqlDuplicateCardStyle')) {
+      const style = document.createElement('style');
+      style.id = 'sqlDuplicateCardStyle';
+      style.textContent = '.sql-practice-duplicate-card { display: none !important; }';
+      document.head.appendChild(style);
+    }
+  }
   function watchPage() {
     const page = document.getElementById('page');
     if (!page) return;
-    const observer = new MutationObserver(() => { addNextButton(); cleanPracticalHeader(); });
+    const observer = new MutationObserver(() => {
+      addNextButton();
+      cleanPracticalHeader();
+      removePracticalDuplicateCard();
+    });
     observer.observe(page, { childList: true, subtree: true });
     addNextButton();
     cleanPracticalHeader();
+    removePracticalDuplicateCard();
   }
   function expandMainLayout() {
     if (document.getElementById('fullWidthLayoutFix')) return;
