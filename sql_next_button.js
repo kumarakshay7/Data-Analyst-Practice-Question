@@ -46,26 +46,28 @@
   function cleanPracticalHeader() {
     const title = document.getElementById('title');
     const subtitle = document.getElementById('subtitle');
-    const questionHeaders = document.querySelectorAll('#page > .card:first-child .question');
 
     if (typeof mode !== 'undefined' && mode === 'practice') {
       // Keep the current question number + title in the main header at the top.
-      // Remove only the duplicate question heading inside the first card.
+      // Remove the entire duplicate intro card containing Practical SQL,
+      // difficulty, duplicate question title, and the instruction text.
+      const firstCard = document.querySelector('#page > .card:first-child');
+      if (firstCard) {
+        const text = firstCard.textContent || '';
+        if (text.includes('Practical SQL') && text.includes('Write your query before looking at the solution.')) {
+          firstCard.remove();
+        }
+      }
+
       if (title && current) {
         title.textContent = `${current.id} · ${current.title}`;
       }
       if (subtitle) {
         subtitle.textContent = 'Query-writing questions are separated from theory questions. Write SQL, run it, and check your result.';
       }
-      questionHeaders.forEach(el => {
-        el.style.display = 'none';
-      });
     } else {
       if (title) title.textContent = 'Practical SQL Questions';
       if (subtitle) subtitle.textContent = 'Query-writing questions are separated from theory questions. Write SQL, run it, and check your result.';
-      questionHeaders.forEach(el => {
-        el.style.display = '';
-      });
     }
   }
 
