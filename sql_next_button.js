@@ -1,26 +1,17 @@
 (() => {
-  // SQL Practical Next button: follows the current filtered question order.
   function filteredQuestions() {
     const search = document.getElementById('search');
     const difficulty = document.getElementById('difficulty');
     const s = (search?.value || '').toLowerCase().trim();
     const d = difficulty?.value || 'All';
-
-    return BANK.filter(q =>
-      mode === 'practice' &&
-      practicalIds.has(q.n) &&
-      (!s || q.title.toLowerCase().includes(s) || q.id.toLowerCase().includes(s)) &&
-      (d === 'All' || q.difficulty === d)
-    );
+    return BANK.filter(q => mode === 'practice' && practicalIds.has(q.n) && (!s || q.title.toLowerCase().includes(s) || q.id.toLowerCase().includes(s)) && (d === 'All' || q.difficulty === d));
   }
 
   function addNextButton() {
     if (typeof mode !== 'undefined' && mode !== 'practice') return;
-
     const buttons = document.querySelector('#page .buttons');
     const clear = buttons?.querySelector('.clear');
     if (!buttons || !clear || document.getElementById('nextQuestionBtn')) return;
-
     const button = document.createElement('button');
     button.id = 'nextQuestionBtn';
     button.type = 'button';
@@ -28,17 +19,14 @@
     button.textContent = 'Next →';
     button.title = 'Open the next SQL practical question';
     button.addEventListener('click', nextQuestion);
-
     clear.insertAdjacentElement('afterend', button);
   }
 
   function nextQuestion() {
     const arr = filteredQuestions();
     if (!arr.length) return;
-
     const index = arr.findIndex(q => current && q.n === current.n);
     const next = arr[(index + 1 + arr.length) % arr.length];
-
     show(next.n);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -46,14 +34,9 @@
   function cleanPracticalHeader() {
     const title = document.getElementById('title');
     const subtitle = document.getElementById('subtitle');
-
     if (typeof mode !== 'undefined' && mode === 'practice') {
-      if (title && current) {
-        title.textContent = `${current.id} · ${current.title}`;
-      }
-      if (subtitle) {
-        subtitle.textContent = 'Query-writing questions are separated from theory questions. Write SQL, run it, and check your result.';
-      }
+      if (title && current) title.textContent = `${current.id} · ${current.title}`;
+      if (subtitle) subtitle.textContent = 'Query-writing questions are separated from theory questions. Write SQL, run it, and check your result.';
     } else {
       if (title) title.textContent = 'Practical SQL Questions';
       if (subtitle) subtitle.textContent = 'Query-writing questions are separated from theory questions. Write SQL, run it, and check your result.';
@@ -63,13 +46,11 @@
   function watchPage() {
     const page = document.getElementById('page');
     if (!page) return;
-
     const observer = new MutationObserver(() => {
       addNextButton();
       cleanPracticalHeader();
     });
     observer.observe(page, { childList: true, subtree: true });
-
     addNextButton();
     cleanPracticalHeader();
   }
@@ -78,19 +59,10 @@
     if (document.getElementById('fullWidthLayoutFix')) return;
     const style = document.createElement('style');
     style.id = 'fullWidthLayoutFix';
-    style.textContent = `
-      .main {
-        max-width: none !important;
-        width: 100% !important;
-        margin: 0 !important;
-      }
-    `;
+    style.textContent = `.main { max-width: none !important; width: 100% !important; margin: 0 !important; }`;
     document.head.appendChild(style);
   }
 
-  // Additional runnable SQL questions, ordered from basic to advanced.
-  // Existing questions are kept unchanged. These are added to the interactive
-  // Practical SQL section and use the existing practice database.
   const extraQuestions = [
     {n:1001,title:'List all customers with their names and email addresses.',difficulty:'Easy',schema:'customers(customer_id, customer_name, email, date_of_birth, signup_date)',hint:'Select the customer_name and email columns from customers.',sql:'SELECT customer_name,email FROM customers;'},
     {n:1002,title:'Find products with a price greater than 10000.',difficulty:'Easy',schema:'products(product_id, product_name, category, price)',hint:'Filter the price column with a WHERE condition.',sql:'SELECT * FROM products WHERE price>10000;'},
@@ -120,32 +92,30 @@
   ];
 
   function applyExtraQuestions() {
-    if (window.__extraSqlQuestionsApplied || !Array.isArray(window.BANK) || !BANK.length) return false;
-
+    if (window.__extraSqlQuestionsApplied || typeof BANK === 'undefined' || !Array.isArray(BANK) || !BANK.length) return false;
     window.__extraSqlQuestionsApplied = true;
+
     for (const q of extraQuestions) {
       BANK.push({n:q.n,id:'Q'+q.n,title:q.title,difficulty:q.difficulty});
       practicalIds.add(q.n);
     }
 
-    const originalMeta = window.meta;
-    const originalSolution = window.solution;
+    const originalMeta = meta;
+    const originalSolution = solution;
     const extraById = new Map(extraQuestions.map(q => [q.n,q]));
 
-    window.meta = function(q) {
+    meta = function(q) {
       const extra = extraById.get(q.n);
       if (extra) return [extra.schema,extra.hint];
       return originalMeta(q);
     };
 
-    window.solution = function(q) {
+    solution = function(q) {
       const extra = extraById.get(q.n);
       if (extra) return extra.sql;
       return originalSolution(q);
     };
 
-    // Give the Practical SQL section a clean continuous numbering: Q001, Q002, Q003...
-    // Existing questions remain in the same order and none are removed.
     const practical = BANK.filter(q => practicalIds.has(q.n)).sort((a,b) => a.n-b.n);
     practical.forEach((q,index) => {
       q.id = 'Q' + String(index + 1).padStart(3,'0');
