@@ -1,5 +1,5 @@
 // Stable Python Theory + Practical navigation.
-// Uses a small internal index instead of reading the formatted Q1/Q2 labels.
+// One navigation controller for both modes.
 (() => {
   const navSelector = '#nav .qbtn';
   const state = window.__pythonNavigationState || { index: 0 };
@@ -10,6 +10,11 @@
       const style = getComputedStyle(button);
       return style.display !== 'none' && style.visibility !== 'hidden' && !button.disabled;
     });
+  }
+
+  function isPractical() {
+    return document.getElementById('pythonPracticeTab')?.classList.contains('active') ||
+      /practical/i.test(document.getElementById('subtitle')?.textContent || '');
   }
 
   function clean(value) {
@@ -57,10 +62,19 @@
     return [...page.querySelectorAll('.card')].find((card) => /interview answer/i.test(card.textContent || '')) || null;
   }
 
+  function practicalContainer() {
+    const page = document.getElementById('page');
+    if (!page) return null;
+    // Practical questions already have a .buttons row for Run/Check/Show/Clear.
+    return page.querySelector('.buttons') || page.querySelector('.editor')?.parentElement || page;
+  }
+
   function ensureNext() {
     const qs = questions();
-    const card = interviewCard();
-    if (!qs.length || !card) return;
+    if (!qs.length) return;
+
+    const container = isPractical() ? practicalContainer() : interviewCard();
+    if (!container) return;
 
     let button = document.getElementById('pythonNextButton');
     if (!button) {
@@ -71,41 +85,54 @@
       button.setAttribute('data-python-next', '1');
     }
 
+    button.className = isPractical() ? 'btn' : '';
+    Object.assign(button.style, {
+      background: '#7c3aed',
+      color: '#fff',
+      border: '0',
+      borderRadius: '8px',
+      padding: '10px 16px',
+      fontWeight: '700',
+      cursor: 'pointer',
+      pointerEvents: 'auto',
+      opacity: '1',
+      display: 'inline-block',
+      marginLeft: '8px'
+    });
+    button.disabled = false;
+    button.removeAttribute('disabled');
+
+    // Assign one property handler only. MutationObserver may call ensureNext
+    // many times, but this replaces rather than stacks handlers.
     button.onclick = function (event) {
       event.preventDefault();
       event.stopPropagation();
-
-      const current = questions();
-      if (!current.length) return;
-
-      state.index = state.index >= current.length - 1 ? 0 : state.index + 1;
-      const next = current[state.index];
-      if (!next) return;
-
-      next.click();
-      setTimeout(formatDisplay, 0);
-      setTimeout(formatDisplay, 100);
-      setTimeout(ensureNext, 150);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      goNext();
     };
 
-    Object.assign(button.style, {
-      background: '#7c3aed', color: '#fff', border: '0', borderRadius: '8px',
-      padding: '10px 16px', fontWeight: '700', cursor: 'pointer',
-      pointerEvents: 'auto', opacity: '1', display: 'inline-block'
-    });
-
-    let wrap = card.querySelector('[data-python-next-wrap]');
-    if (!wrap) {
-      wrap = document.createElement('div');
-      wrap.setAttribute('data-python-next-wrap', '1');
-      Object.assign(wrap.style, { display: 'flex', justifyContent: 'flex-end', marginTop: '16px', width: '100%' });
-      card.appendChild(wrap);
-    }
-    if (button.parentElement !== wrap) wrap.appendChild(button);
+    if (button.parentElement !== container) container.appendChild(button);
   }
 
-  // Capture sidebar clicks before the original inline question handler.
+  function goNext() {
+    const current = questions();
+    if (!current.length) return;
+
+    let currentIndex = current.findIndex((q) => q.classList.contains('active'));
+    if (currentIndex < 0) currentIndex = state.index;
+    if (currentIndex < 0 || currentIndex >= current.length) currentIndex = 0;
+
+    const nextIndex = currentIndex + 1 < current.length ? currentIndex + 1 : 0;
+    state.index = nextIndex;
+    const next = current[nextIndex];
+    if (!next) return;
+
+    next.click();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => { formatDisplay(); ensureNext(); }, 50);
+    setTimeout(() => { formatDisplay(); ensureNext(); }, 200);
+  }
+
+  // Keep the internal index synchronized with manual sidebar navigation.
   document.addEventListener('click', (event) => {
     const button = event.target.closest?.(navSelector);
     if (!button) return;
@@ -123,6 +150,7 @@
       state.index = 0;
       setTimeout(formatDisplay, 50);
       setTimeout(ensureNext, 100);
+      setTimeout(ensureNext, 300);
     }
   }, true);
 
@@ -138,17 +166,19 @@
     setTimeout(ensureNext, 100);
   });
 
-  // Repair only display/button placement. This observer never changes state.
   const observer = new MutationObserver(() => {
-    setTimeout(() => { formatDisplay(); ensureNext(); }, 0);
+    setTimeout(() => {
+      formatDisplay();
+      ensureNext();
+    }, 0);
   });
   observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 
   function boot() {
     setTimeout(formatDisplay, 0);
-    setTimeout(ensureNext, 50);
+    setTimeout(ensureNext, 100);
     setTimeout(formatDisplay, 300);
-    setTimeout(ensureNext, 350);
+    setTimeout(ensureNext, 400);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
