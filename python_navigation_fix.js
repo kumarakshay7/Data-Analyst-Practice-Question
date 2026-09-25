@@ -1,4 +1,4 @@
-// Stable Python Theory + Practical navigation and Next-button placement.
+// Stable Python Theory + Practical navigation, display formatting and UI cleanup.
 (() => {
   const navSelector = '#nav .qbtn';
   const state = window.__pythonNavigationState || { index: 0 };
@@ -25,21 +25,33 @@
     return text;
   }
 
+  // The page already has the question in the main header (#title).
+  // Hide only the extra question-summary card rendered inside #page.
+  // Keep the explanation, interview answer and practical editor cards untouched.
+  function removeDuplicateQuestionCard() {
+    const page = document.getElementById('page');
+    if (!page) return;
+    const question = page.querySelector('.question');
+    if (!question) return;
+    const card = question.closest('.card');
+    if (!card) return;
+    card.setAttribute('data-python-question-summary', 'hidden');
+    card.style.display = 'none';
+  }
+
   function formatDisplay() {
     const qs = questions();
     if (!qs.length) return;
     if (state.index >= qs.length) state.index = qs.length - 1;
     if (state.index < 0) state.index = 0;
+
     qs.forEach((button, i) => {
       const text = clean(button.textContent);
       if (text) button.textContent = `Q${i + 1}.🧑‍💼${text}`;
       button.classList.toggle('active', i === state.index);
     });
-    const pageQuestion = document.querySelector('#page .question');
-    if (pageQuestion) {
-      const text = clean(pageQuestion.textContent);
-      if (text) pageQuestion.textContent = `Q${state.index + 1}.🧑‍💼${text}`;
-    }
+
+    // The question card is intentionally hidden, so only format the header.
     const title = document.getElementById('title');
     if (title && qs[state.index]) {
       const text = clean(qs[state.index].textContent);
@@ -67,7 +79,6 @@
       card.appendChild(wrap);
     }
 
-    // The wrapper is a full-width row inside the Interview answer card.
     Object.assign(wrap.style, {
       display: 'flex',
       flexDirection: 'row',
@@ -82,15 +93,9 @@
 
     if (button.parentElement !== wrap) wrap.appendChild(button);
 
-    // Force the button itself to the right edge. This prevents any inherited
-    // button styles from placing it on the left.
     Object.assign(button.style, {
-      display: 'block',
-      position: 'static',
-      float: 'none',
-      marginLeft: 'auto',
-      marginRight: '0',
-      alignSelf: 'flex-end'
+      display: 'block', position: 'static', float: 'none',
+      marginLeft: 'auto', marginRight: '0', alignSelf: 'flex-end'
     });
   }
 
@@ -112,20 +117,10 @@
 
     button.className = practical ? 'btn' : '';
     Object.assign(button.style, {
-      background: '#7c3aed',
-      color: '#fff',
-      border: '0',
-      borderRadius: '8px',
-      padding: '10px 16px',
-      fontWeight: '700',
-      cursor: 'pointer',
-      pointerEvents: 'auto',
-      opacity: '1',
-      display: 'block',
-      position: 'static',
-      float: 'none',
-      marginLeft: 'auto',
-      marginRight: '0'
+      background: '#7c3aed', color: '#fff', border: '0', borderRadius: '8px',
+      padding: '10px 16px', fontWeight: '700', cursor: 'pointer',
+      pointerEvents: 'auto', opacity: '1', display: 'block', position: 'static',
+      float: 'none', marginLeft: 'auto', marginRight: '0'
     });
     button.disabled = false;
     button.removeAttribute('disabled');
@@ -136,7 +131,6 @@
     };
 
     if (practical) {
-      // Practical action row is also a flex row, so keep Next at the far right.
       if (button.parentElement !== container) container.appendChild(button);
       container.style.display = 'flex';
       container.style.alignItems = 'center';
@@ -159,8 +153,8 @@
     if (!next) return;
     next.click();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(() => { formatDisplay(); ensureNext(); }, 50);
-    setTimeout(() => { formatDisplay(); ensureNext(); }, 200);
+    setTimeout(() => { removeDuplicateQuestionCard(); formatDisplay(); ensureNext(); }, 50);
+    setTimeout(() => { removeDuplicateQuestionCard(); formatDisplay(); ensureNext(); }, 200);
   }
 
   document.addEventListener('click', (event) => {
@@ -170,7 +164,7 @@
     const index = qs.indexOf(button);
     if (index >= 0) {
       state.index = index;
-      setTimeout(formatDisplay, 0);
+      setTimeout(() => { removeDuplicateQuestionCard(); formatDisplay(); }, 0);
       setTimeout(ensureNext, 50);
     }
   }, true);
@@ -178,7 +172,7 @@
   document.addEventListener('click', (event) => {
     if (event.target.closest?.('#pythonTheoryTab, #pythonPracticeTab')) {
       state.index = 0;
-      setTimeout(formatDisplay, 50);
+      setTimeout(() => { removeDuplicateQuestionCard(); formatDisplay(); }, 50);
       setTimeout(ensureNext, 100);
       setTimeout(ensureNext, 300);
     }
@@ -186,26 +180,26 @@
 
   document.getElementById('search')?.addEventListener('input', () => {
     state.index = 0;
-    setTimeout(formatDisplay, 50);
+    setTimeout(() => { removeDuplicateQuestionCard(); formatDisplay(); }, 50);
     setTimeout(ensureNext, 100);
   });
 
   document.getElementById('difficulty')?.addEventListener('change', () => {
     state.index = 0;
-    setTimeout(formatDisplay, 50);
+    setTimeout(() => { removeDuplicateQuestionCard(); formatDisplay(); }, 50);
     setTimeout(ensureNext, 100);
   });
 
   const observer = new MutationObserver(() => {
-    setTimeout(() => { formatDisplay(); ensureNext(); }, 0);
+    setTimeout(() => { removeDuplicateQuestionCard(); formatDisplay(); ensureNext(); }, 0);
   });
   observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 
   function boot() {
-    setTimeout(formatDisplay, 0);
-    setTimeout(ensureNext, 100);
-    setTimeout(formatDisplay, 300);
-    setTimeout(ensureNext, 400);
+    setTimeout(() => { removeDuplicateQuestionCard(); formatDisplay(); }, 0);
+    setTimeout(() => { removeDuplicateQuestionCard(); ensureNext(); }, 100);
+    setTimeout(() => { removeDuplicateQuestionCard(); formatDisplay(); }, 300);
+    setTimeout(() => { removeDuplicateQuestionCard(); ensureNext(); }, 400);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
