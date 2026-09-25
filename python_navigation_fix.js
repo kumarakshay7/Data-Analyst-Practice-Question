@@ -64,15 +64,34 @@
     if (!wrap) {
       wrap = document.createElement('div');
       wrap.setAttribute('data-python-next-wrap', '1');
-      wrap.style.display = 'flex';
-      wrap.style.justifyContent = 'flex-end';
-      wrap.style.alignItems = 'center';
-      wrap.style.width = '100%';
-      wrap.style.marginTop = '16px';
-      wrap.style.boxSizing = 'border-box';
       card.appendChild(wrap);
     }
+
+    // The wrapper is a full-width row inside the Interview answer card.
+    Object.assign(wrap.style, {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      width: '100%',
+      minWidth: '100%',
+      boxSizing: 'border-box',
+      marginTop: '16px',
+      padding: '0'
+    });
+
     if (button.parentElement !== wrap) wrap.appendChild(button);
+
+    // Force the button itself to the right edge. This prevents any inherited
+    // button styles from placing it on the left.
+    Object.assign(button.style, {
+      display: 'block',
+      position: 'static',
+      float: 'none',
+      marginLeft: 'auto',
+      marginRight: '0',
+      alignSelf: 'flex-end'
+    });
   }
 
   function ensureNext() {
@@ -93,10 +112,20 @@
 
     button.className = practical ? 'btn' : '';
     Object.assign(button.style, {
-      background: '#7c3aed', color: '#fff', border: '0', borderRadius: '8px',
-      padding: '10px 16px', fontWeight: '700', cursor: 'pointer',
-      pointerEvents: 'auto', opacity: '1', display: 'inline-block',
-      marginLeft: practical ? 'auto' : '0', float: 'none'
+      background: '#7c3aed',
+      color: '#fff',
+      border: '0',
+      borderRadius: '8px',
+      padding: '10px 16px',
+      fontWeight: '700',
+      cursor: 'pointer',
+      pointerEvents: 'auto',
+      opacity: '1',
+      display: 'block',
+      position: 'static',
+      float: 'none',
+      marginLeft: 'auto',
+      marginRight: '0'
     });
     button.disabled = false;
     button.removeAttribute('disabled');
@@ -107,7 +136,12 @@
     };
 
     if (practical) {
+      // Practical action row is also a flex row, so keep Next at the far right.
       if (button.parentElement !== container) container.appendChild(button);
+      container.style.display = 'flex';
+      container.style.alignItems = 'center';
+      container.style.width = '100%';
+      button.style.marginLeft = 'auto';
     } else {
       placeTheoryButton(button, container);
     }
