@@ -150,6 +150,9 @@
     button.className = 'btn clear';
     button.textContent = 'Next →';
     button.title = 'Open the next question';
+    // Only change the button colors. Size, position, spacing and behavior stay unchanged.
+    button.style.background = '#7c3aed';
+    button.style.color = '#ffffff';
     button.onclick = nextQuestion;
     return button;
   }
