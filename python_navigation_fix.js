@@ -1,5 +1,4 @@
-// Stable Python Theory + Practical navigation.
-// One navigation controller for both modes.
+// Stable Python Theory + Practical navigation and Next-button placement.
 (() => {
   const navSelector = '#nav .qbtn';
   const state = window.__pythonNavigationState || { index: 0 };
@@ -13,8 +12,7 @@
   }
 
   function isPractical() {
-    return document.getElementById('pythonPracticeTab')?.classList.contains('active') ||
-      /practical/i.test(document.getElementById('subtitle')?.textContent || '');
+    return document.getElementById('pythonPracticeTab')?.classList.contains('active') || /practical/i.test(document.getElementById('subtitle')?.textContent || '');
   }
 
   function clean(value) {
@@ -22,11 +20,7 @@
     let old;
     do {
       old = text;
-      text = text
-        .replace(/^PY-[TP]\d+\s*[·•.:\-]\s*/i, '')
-        .replace(/^Q\s*\d+\s*[·•.:\-]?\s*/i, '')
-        .replace(/^🧑‍💼\s*/u, '')
-        .trim();
+      text = text.replace(/^PY-[TP]\d+\s*[·•.:\-]\s*/i, '').replace(/^Q\s*\d+\s*[·•.:\-]?\s*/i, '').replace(/^🧑‍💼\s*/u, '').trim();
     } while (text !== old);
     return text;
   }
@@ -36,19 +30,16 @@
     if (!qs.length) return;
     if (state.index >= qs.length) state.index = qs.length - 1;
     if (state.index < 0) state.index = 0;
-
     qs.forEach((button, i) => {
       const text = clean(button.textContent);
       if (text) button.textContent = `Q${i + 1}.🧑‍💼${text}`;
       button.classList.toggle('active', i === state.index);
     });
-
     const pageQuestion = document.querySelector('#page .question');
     if (pageQuestion) {
       const text = clean(pageQuestion.textContent);
       if (text) pageQuestion.textContent = `Q${state.index + 1}.🧑‍💼${text}`;
     }
-
     const title = document.getElementById('title');
     if (title && qs[state.index]) {
       const text = clean(qs[state.index].textContent);
@@ -65,15 +56,30 @@
   function practicalContainer() {
     const page = document.getElementById('page');
     if (!page) return null;
-    // Practical questions already have a .buttons row for Run/Check/Show/Clear.
     return page.querySelector('.buttons') || page.querySelector('.editor')?.parentElement || page;
+  }
+
+  function placeTheoryButton(button, card) {
+    let wrap = card.querySelector('[data-python-next-wrap]');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.setAttribute('data-python-next-wrap', '1');
+      wrap.style.display = 'flex';
+      wrap.style.justifyContent = 'flex-end';
+      wrap.style.alignItems = 'center';
+      wrap.style.width = '100%';
+      wrap.style.marginTop = '16px';
+      wrap.style.boxSizing = 'border-box';
+      card.appendChild(wrap);
+    }
+    if (button.parentElement !== wrap) wrap.appendChild(button);
   }
 
   function ensureNext() {
     const qs = questions();
     if (!qs.length) return;
-
-    const container = isPractical() ? practicalContainer() : interviewCard();
+    const practical = isPractical();
+    const container = practical ? practicalContainer() : interviewCard();
     if (!container) return;
 
     let button = document.getElementById('pythonNextButton');
@@ -85,54 +91,44 @@
       button.setAttribute('data-python-next', '1');
     }
 
-    button.className = isPractical() ? 'btn' : '';
+    button.className = practical ? 'btn' : '';
     Object.assign(button.style, {
-      background: '#7c3aed',
-      color: '#fff',
-      border: '0',
-      borderRadius: '8px',
-      padding: '10px 16px',
-      fontWeight: '700',
-      cursor: 'pointer',
-      pointerEvents: 'auto',
-      opacity: '1',
-      display: 'inline-block',
-      marginLeft: '8px'
+      background: '#7c3aed', color: '#fff', border: '0', borderRadius: '8px',
+      padding: '10px 16px', fontWeight: '700', cursor: 'pointer',
+      pointerEvents: 'auto', opacity: '1', display: 'inline-block',
+      marginLeft: practical ? 'auto' : '0', float: 'none'
     });
     button.disabled = false;
     button.removeAttribute('disabled');
-
-    // Assign one property handler only. MutationObserver may call ensureNext
-    // many times, but this replaces rather than stacks handlers.
     button.onclick = function (event) {
       event.preventDefault();
       event.stopPropagation();
       goNext();
     };
 
-    if (button.parentElement !== container) container.appendChild(button);
+    if (practical) {
+      if (button.parentElement !== container) container.appendChild(button);
+    } else {
+      placeTheoryButton(button, container);
+    }
   }
 
   function goNext() {
     const current = questions();
     if (!current.length) return;
-
     let currentIndex = current.findIndex((q) => q.classList.contains('active'));
     if (currentIndex < 0) currentIndex = state.index;
     if (currentIndex < 0 || currentIndex >= current.length) currentIndex = 0;
-
     const nextIndex = currentIndex + 1 < current.length ? currentIndex + 1 : 0;
     state.index = nextIndex;
     const next = current[nextIndex];
     if (!next) return;
-
     next.click();
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setTimeout(() => { formatDisplay(); ensureNext(); }, 50);
     setTimeout(() => { formatDisplay(); ensureNext(); }, 200);
   }
 
-  // Keep the internal index synchronized with manual sidebar navigation.
   document.addEventListener('click', (event) => {
     const button = event.target.closest?.(navSelector);
     if (!button) return;
@@ -167,10 +163,7 @@
   });
 
   const observer = new MutationObserver(() => {
-    setTimeout(() => {
-      formatDisplay();
-      ensureNext();
-    }, 0);
+    setTimeout(() => { formatDisplay(); ensureNext(); }, 0);
   });
   observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 
